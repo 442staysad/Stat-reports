@@ -10,6 +10,8 @@ namespace Core.Entities
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public DateTime PeriodStart { get; set; }
+        public DateTime PeriodEnd { get; set; } 
         public string Fields { get; set; } // JSON-структура полей
     }
 }

@@ -54,7 +54,7 @@ namespace Core.Services
             if (existingReport == null) return null;
 
             existingReport.Name = reportDto.Name;
-            existingReport.SubmissionDate = reportDto.SubmissionDate;
+            existingReport.UploadDate = reportDto.SubmissionDate;
             existingReport.Status = (ReportStatus)reportDto.Status;
             existingReport.FilePath = reportDto.FilePath;
 
@@ -85,7 +85,6 @@ namespace Core.Services
             return deadline?.Deadline;
         }
 
-        // === ДОБАВЛЕННЫЕ МЕТОДЫ ===
 
         /// <summary>
         /// Проверяет срок сдачи перед загрузкой отчета.
@@ -111,7 +110,7 @@ namespace Core.Services
                 UploadedById = uploadedById,
                 FilePath = filePath,
                 Status = ReportStatus.Черновик,
-                SubmissionDate = DateTime.UtcNow,
+                UploadDate = DateTime.UtcNow,
             };
 
             var createdReport = await _reportRepository.AddAsync(report);
@@ -161,7 +160,7 @@ namespace Core.Services
             {
                 Id = report.Id,
                 Name = report.Name,
-                SubmissionDate = report.SubmissionDate,
+                SubmissionDate = report.UploadDate,
                 Status = (ReportStatus)report.Status,
                 FilePath = report.FilePath,
                 UploadedById = report.UploadedById,
@@ -177,7 +176,7 @@ namespace Core.Services
             {
                 Id = reportDto.Id,
                 Name = reportDto.Name,
-                SubmissionDate = reportDto.SubmissionDate,
+                UploadDate = reportDto.SubmissionDate,
                 Status = (ReportStatus)reportDto.Status,
                 FilePath = reportDto.FilePath,
                 UploadedById = reportDto.UploadedById,

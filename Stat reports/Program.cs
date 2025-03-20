@@ -19,9 +19,10 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExcelReportMerger, ExcelReportMerger>();
-builder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
+//ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Настройка MVC
+builder.Services.AddScoped<IFileService,FileService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -45,8 +46,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Report}/{action=Index}/{id?}");
-
+    pattern: "{controller=ReportMvc}/{action=Index}/{id?}");
 app.Run();
 
 
