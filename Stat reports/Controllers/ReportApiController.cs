@@ -69,7 +69,7 @@ namespace Stat_reports.Controllers
         }
 
         [HttpGet("download/{reportId}")]
-        public async Task<IActionResult> DownloadReport(int reportId)
+        public async Task<IActionResult> Download(int reportId)
         {
             var fileBytes = await _reportService.DownloadReportAsync(reportId);
             return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"report_{reportId}.xlsx");

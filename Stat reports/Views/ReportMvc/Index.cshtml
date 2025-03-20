@@ -21,7 +21,7 @@
                 <td>@report.SubmissionDate.ToShortDateString()</td>
                 <td>
                     <a href="@Url.Action("Edit", "ReportMvc", new { id = report.Id })">Редактировать</a> |
-                    <a href="@Url.Action("Download", "ReportMvc", new { id = report.Id })">Скачать</a> |
+                    <a href="@Url.Action("Download", "ReportApi", new { id = report.Id })">Скачать</a> |
                     <a href="@Url.Action("Delete", "ReportMvc", new { id = report.Id })">Удалить</a>
                 </td>
             </tr>
