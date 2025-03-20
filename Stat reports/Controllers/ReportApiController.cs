@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Stat_reports.Controllers
 {
-    [Route("api/reports")]
+    [Route("ReportApi")]
     [ApiController]
     public class ReportApiController : ControllerBase
     {
@@ -69,10 +69,10 @@ namespace Stat_reports.Controllers
         }
 
         [HttpGet("download/{reportId}")]
-        public async Task<IActionResult> Download(int reportId)
+        public async Task<IActionResult> Download(int reportId,string reportname)
         {
             var fileBytes = await _reportService.DownloadReportAsync(reportId);
-            return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"report_{reportId}.xlsx");
+            return /*fileBytes == null ? NotFound() :*/ File(fileBytes, "application/octet-stream", $"{reportname}.xlsx");
         }
 
         [Authorize(Roles = "Admin,Reviewer")]

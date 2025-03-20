@@ -66,7 +66,7 @@ namespace Core.Services
         {
             var report = await _reportRepository.FindAsync(r => r.Id == id);
             if (report == null) return false;
-
+            
             if (!string.IsNullOrEmpty(report.FilePath))
                 await _fileService.DeleteFileAsync(report.FilePath);
 

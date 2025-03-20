@@ -42,7 +42,7 @@ namespace Infrastructure.Services
             if (!File.Exists(fullPath))
                 return null;
 
-            return await File.ReadAllBytesAsync(fullPath);
+            return await File.ReadAllBytesAsync(fullPath); 
         }
 
         public Task<bool> DeleteFileAsync(string filePath)
