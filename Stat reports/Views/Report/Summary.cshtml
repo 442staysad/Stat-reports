@@ -1,0 +1,32 @@
+﻿<form id="mergeForm" enctype="multipart/form-data">
+    <label for="fileInput">Выберите файлы отчетов:</label>
+    <input type="file" id="fileInput" name="files" multiple required>
+    <button type="submit">Сформировать сводный отчет</button>
+</form>
+
+<script>
+    document.getElementById("mergeForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        let formData = new FormData();
+        let files = document.getElementById("fileInput").files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append("files", files[i]);
+        }
+
+        let response = await fetch("/api/reports/merge", {
+            method: "POST",
+            body: formData
+        });
+
+        if (response.ok) {
+            let blob = await response.blob();
+            let link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = "MergedReport.xlsx";
+            link.click();
+        } else {
+            alert("Ошибка при объединении отчетов");
+        }
+    });
+</script>

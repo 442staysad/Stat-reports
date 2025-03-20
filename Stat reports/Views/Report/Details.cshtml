@@ -1,0 +1,17 @@
+﻿@model Core.DTO.ReportDto
+
+@{
+    ViewData["Title"] = "Просмотр отчета";
+}
+
+<h2>Просмотр отчета</h2>
+
+<table class="table">
+    <tr><th>ID:</th><td>@Model.Id</td></tr>
+    <tr><th>Название:</th><td>@Model.Name</td></tr>
+    <tr><th>Статус:</th><td>@Model.Status</td></tr>
+    <tr><th>Дата загрузки:</th><td>@Model.SubmissionDate.ToShortDateString()</td></tr>
+</table>
+
+<a href="@Url.Action("Index", "ReportMvc")">Назад к списку</a>
+<a href="@Url.Action("Edit", "ReportMvc", new { id = Model.Id })" class="btn btn-warning">Редактировать</a>

@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "Загрузка отчета";
+}
+
+<h2>Загрузка отчета</h2>
+
+<form asp-action="Upload" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="templateId">Тип отчета</label>
+        <select class="form-control" name="templateId" required>
+            <option value="1">1-ис</option>
+            <option value="2">4-ис</option>
+            <option value="3">4-у</option>
+            <option value="4">4-ф</option>
+            <option value="5">6-ис</option>
+            <option value="6">12-вэс</option>
+            <option value="7">12-ис</option>
+            <option value="8">12-п</option>
+            <option value="9">12-т</option>
+            <option value="10">12-ф (прибыль)</option>
+            <option value="11">12-ф (расчеты)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="branchId">Филиал</label>
+        <input type="number" class="form-control" name="branchId" required />
+    </div>
+
+    <div class="form-group">
+        <label for="uploadedById">Ваш ID</label>
+        <input type="number" class="form-control" name="uploadedById" required />
+    </div>
+
+    <div class="form-group">
+        <label for="file">Файл отчета</label>
+        <input type="file" class="form-control" name="file" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Загрузить</button>
+</form>
+<a href="@Url.Action("Index", "ReportMvc")">Вернуться к списку отчетов</a>

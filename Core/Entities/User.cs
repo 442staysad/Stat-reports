@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace Core.Entities
 {
-    class User:BaseEntity
+    public class User:BaseEntity
     {
         public string UserName { get; set; }
-        public string Password { get; set; }
-        public int RoleId { get; set; }
         public int AccessId {  get; set; }
         public int EmployeeId { get; set; }
+        public string Email { get; set; }
+        public string PasswordHash { get; set; }
+        public string Role { get; set; }
+        public int? BranchId { get; set; } // Для пользователей филиалов
+        public Branch Branch { get; set; }
     }
 }

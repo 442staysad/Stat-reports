@@ -24,7 +24,7 @@ namespace Infrastructure.Repository
         /// Gets a collection of all objects in the database
         /// </summary>
         /// <remarks>Synchronous</remarks>
-        public IQueryable<T> GetAll(Func<IQueryable<T>, IIncludableQueryable<T, object>> includes = null)
+        public IQueryable<T> GetAll(Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null)
         {
             var query = _context.Set<T>().AsQueryable();
             if (includes != null)
@@ -48,7 +48,7 @@ namespace Infrastructure.Repository
         /// Returns a single object which matches the provided expression
         /// </summary>
         /// <remarks>Asynchronous</remarks>
-        public async Task<T> FindAsync(Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>> includes = null)
+        public async Task<T> FindAsync(Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null)
         {
             var query=_context.Set<T>().AsQueryable();
             if (includes != null)
@@ -108,7 +108,7 @@ namespace Infrastructure.Repository
         }
 
         /// <summary>
-        /// Adds a collection of objects into the database and commits the chфnges
+        /// Adds a collection of objects into the database and commits the changes
         /// </summary>
         /// <remarks>Asynchronous</remarks>
         public async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entityList)
@@ -122,7 +122,7 @@ namespace Infrastructure.Repository
         /// Deletes a collection of objects into the database and commits the chфnges
         /// </summary>
         /// <remarks>Asynchronous</remarks>
-        public async Task<IEnumerable<T>> DeleteRangeAsync(IEnumerable<T> entityList)
+        public async Task<IEnumerable<T>> DeleteRangeAsync(IEnumerable<T> entityList)   
         {
             try {
                 _context.Set<T>().RemoveRange(entityList);
@@ -136,7 +136,7 @@ namespace Infrastructure.Repository
         }
 
         /// <summary>
-        /// Updates a collection of objects into the database and commits the chфnges
+        /// Updates a collection of objects into the database and commits the changes
         /// </summary>
         /// <remarks>Asynchronous</remarks>
         public async Task<IEnumerable<T>> UpdateRangeAsync(IEnumerable<T> entityList)

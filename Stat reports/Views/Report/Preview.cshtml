@@ -1,0 +1,37 @@
+﻿@model Stat_reports.ViewModels.ReportPreviewViewModel
+
+@{
+    ViewData["Title"] = "Предпросмотр отчета";
+}
+
+<h2>@Model.ReportName</h2>
+
+<table class="table table-bordered">
+    <tbody id="excelContent">
+        <tr>
+            <td>Загрузка данных...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch('@Url.Action("ParseExcel", "Report")?id=@Model.ReportId')
+            .then(response => response.json())
+            .then(data => {
+                let table = document.getElementById("excelContent");
+                table.innerHTML = "";
+
+                data.forEach(row => {
+                    let tr = document.createElement("tr");
+                    row.forEach(cell => {
+                        let td = document.createElement("td");
+                        td.innerText = cell;
+                        tr.appendChild(td);
+                    });
+                    table.appendChild(tr);
+                });
+            })
+            .catch(error => console.error("Ошибка загрузки данных:", error));
+    });
+</script>
