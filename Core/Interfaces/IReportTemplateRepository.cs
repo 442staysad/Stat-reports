@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Core.Interfaces
 {
-    public interface IReportTemplateRepository : IRepository<ReportTemplate>
+    public interface IReportTemplateRepository 
     {
         Task<ReportTemplate> GetTemplateByNameAsync(string name);
     }
