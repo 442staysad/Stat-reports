@@ -20,7 +20,7 @@ namespace Core.Services
             foreach (var filePath in filePaths)
             {
                 using var package = new ExcelPackage(new FileInfo(filePath));
-                var sheet = package.Workbook.Worksheets.First(); // Берем первый лист (кроме "Главная")
+                var sheet = package.Workbook.Worksheets.First(); //Берем первый лист (кроме "Главная")
 
                 int colCount = sheet.Dimension.End.Column;
                 int rowCount = sheet.Dimension.End.Row;

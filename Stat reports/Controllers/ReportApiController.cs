@@ -36,8 +36,7 @@ namespace Stat_reports.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateReport([FromBody] ReportDto reportDto)
         {
-            if (reportDto == null) return BadRequest("Invalid report data.");
-
+            if (reportDto == null) return BadRequest("Неправильные данные.");
             var createdReport = await _reportService.CreateReportAsync(reportDto);
             return CreatedAtAction(nameof(GetReportById), new { id = createdReport.Id }, createdReport);
         }
@@ -45,7 +44,7 @@ namespace Stat_reports.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateReport(int id, [FromBody] ReportDto reportDto)
         {
-            if (reportDto == null) return BadRequest("Invalid report data.");
+            if (reportDto == null) return BadRequest("Неправильные данные.");
 
             var updatedReport = await _reportService.UpdateReportAsync(id, reportDto);
             return updatedReport == null ? NotFound() : Ok(updatedReport);
