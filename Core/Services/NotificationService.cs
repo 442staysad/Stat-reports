@@ -23,26 +23,6 @@ namespace Core.Services
             _logger = logger;
         }
 
-        public async Task CheckOverdueReportsAsync()
-        {
-            var today = DateTime.UtcNow.Date;
-            var overdueReports = (await _reportRepository.GetAllAsync())
-                .Where(r => r.Status != Core.Enums.ReportStatus.Проверено)
-                .Join(await _deadlineRepository.GetAllAsync(),
-                    report => report.TemplateId,
-                    deadline => deadline.ReportTemplateId,
-                    (report, deadline) => new { Report = report, Deadline = deadline.Deadline })
-                .Where(r => r.Deadline < today)
-                .ToList();
 
-            foreach (var overdue in overdueReports)
-            {
-                string subject = $"Просроченный отчет: {overdue.Report.Name}";
-                string message = $"Отчет {overdue.Report.Name} не был сдан в срок ({overdue.Deadline:yyyy-MM-dd}). Пожалуйста, проверьте.";
-                
-            }
-
-            _logger.LogInformation($"Проверено {overdueReports.Count} просроченных отчетов.");
-        }
     }
 }

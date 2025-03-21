@@ -1,0 +1,34 @@
+﻿@model List<Stat_reports.ViewModels.PendingTemplateViewModel>
+
+@{
+    ViewData["Title"] = "Отчеты в работе";
+}
+
+<h2>Отчеты в работе</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название шаблона</th>
+            <th>Дедлайн</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TemplateName</td>
+                <td>@item.Deadline.ToString("dd.MM.yyyy")</td>
+                <td>@item.Status</td>
+                <td>
+                    @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
+                    {
+                        <a href="@Url.Action("Upload", "ReportMvc", new { templateId = item.TemplateId })" class="btn btn-primary">Загрузить отчет</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

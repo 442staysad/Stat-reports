@@ -7,6 +7,7 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services
 {
@@ -79,11 +80,7 @@ namespace Core.Services
             return await _templateRepository.GetAllAsync();
         }
 
-        public async Task<DateTime?> GetSubmissionDeadlineAsync(int templateId)
-        {
-            var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
-            return deadline?.Deadline;
-        }
+
 
 
         /// <summary>
@@ -96,8 +93,6 @@ namespace Core.Services
 
             // Проверяем срок сдачи
             var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
-            if (deadline != null && DateTime.UtcNow > deadline.Deadline)
-                throw new InvalidOperationException("Срок сдачи отчета истек");
 
             // Сохраняем файл
             var filePath = await _fileService.SaveFileAsync(file, $"Reports/{templateId}");
@@ -153,6 +148,63 @@ namespace Core.Services
 
             return await _fileService.GetFileAsync(report.FilePath);
         }
+
+        public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync()
+        {
+            var today = DateTime.UtcNow;
+            var templates = await _templateRepository
+                .GetAll()
+                .Include(t => t.SubmissionDeadline) // Исправлено
+                .ToListAsync();
+
+            var pendingTemplates = new List<PendingTemplateDto>();
+
+            foreach (var template in templates)
+            {
+                var deadline = CalculateDeadline(template.SubmissionDeadline); // Добавить реализацию метода
+                if (deadline > today && deadline <= today.AddMonths(1)) // Дедлайн в ближайший месяц
+                {
+                    var existingReport = await _reportRepository.FindAsync(r =>
+                        r.TemplateId == template.Id &&
+                        r.UploadDate.Year == today.Year &&
+                        r.UploadDate.Month == today.Month);
+
+                    pendingTemplates.Add(new PendingTemplateDto
+                    {
+                        TemplateId = template.Id,
+                        TemplateName = template.Name,
+                        Deadline = deadline,
+                        Status = (ReportStatus)(existingReport?.Status)
+                    });
+                }
+            }
+
+            return pendingTemplates;
+        }
+
+        private DateTime CalculateDeadline(SubmissionDeadline deadline)
+        {
+            var now = DateTime.UtcNow;
+
+            switch (deadline.DeadlineType)
+            {
+                case DeadlineType.Quarterly:
+                    var quarter = (now.Month - 1) / 3 + 1;
+                    var quarterEndMonth = quarter * 3;
+                    return new DateTime(now.Year, quarterEndMonth, deadline.FixedDay ?? 30);
+
+                case DeadlineType.HalfYearly:
+                    var halfYearEndMonth = now.Month <= 6 ? 6 : 12;
+                    return new DateTime(now.Year, halfYearEndMonth, deadline.FixedDay ?? 30);
+
+                case DeadlineType.Yearly:
+                    return new DateTime(now.Year, 12, deadline.FixedDay ?? 30);
+
+                default:
+                    throw new InvalidOperationException("Неизвестный тип дедлайна.");
+            }
+        }
+
 
         private ReportDto MapToDto(Report report)
         {

@@ -9,6 +9,6 @@ namespace Core.DTO
     public class ReportStatusUpdateDto
     {
         public int Status { get; set; }
-        public string Remarks { get; set; }
+        public string? Remarks { get; set; }
     }
 }

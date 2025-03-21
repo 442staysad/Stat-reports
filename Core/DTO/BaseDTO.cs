@@ -6,6 +6,6 @@ namespace Core.DTO
 {
     public class BaseDTO
     {
-        public Nullable<int> Id { get; set; }
+        public int Id { get; set; }
     }
 }

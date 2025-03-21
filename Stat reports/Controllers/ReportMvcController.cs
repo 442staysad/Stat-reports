@@ -64,6 +64,19 @@ namespace Stat_reports.Controllers
 
             return View(model);
         }
+        public async Task<IActionResult> WorkingReports()
+        {
+            var templates = await _reportService.GetPendingTemplatesAsync();
+            var viewModel = templates.Select(t => new PendingTemplateViewModel
+            {
+                TemplateId = t.TemplateId,
+                TemplateName = t.TemplateName,
+                Deadline = t.Deadline,
+                Status = t.Status.ToString()
+            }).ToList();
+
+            return View(viewModel);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Edit(int id, ReportDto reportDto)

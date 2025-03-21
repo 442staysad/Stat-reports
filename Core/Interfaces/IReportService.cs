@@ -19,7 +19,7 @@ namespace Core.Interfaces
         Task<byte[]> DownloadReportAsync(int reportId);
         Task<bool> UpdateReportStatusAsync(int reportId, int status, string remarks);
         Task<bool> AddReportCommentAsync(int reportId, string comment);
-        Task<DateTime?> GetSubmissionDeadlineAsync(int templateId);
+        Task<List<PendingTemplateDto>> GetPendingTemplatesAsync();
 
     }
 }

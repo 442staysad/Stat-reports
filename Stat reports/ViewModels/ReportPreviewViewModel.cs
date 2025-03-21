@@ -3,7 +3,7 @@
     public class ReportPreviewViewModel
     {
         public int ReportId { get; set; }
-        public string ReportName { get; set; }
+        public string? ReportName { get; set; }
         public byte[] FileContent { get; set; }
     }
 }

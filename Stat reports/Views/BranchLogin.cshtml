@@ -1,0 +1,15 @@
+﻿@model Stat_reports.Models.BranchLoginModel
+
+<form asp-action="BranchLogin" method="post">
+    <div>
+        <label>УНП филиала</label>
+        <input asp-for="UNP" />
+        <span asp-validation-for="UNP"></span>
+    </div>
+    <div>
+        <label>Пароль</label>
+        <input asp-for="Password" type="password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+    <button type="submit">Войти</button>
+</form>

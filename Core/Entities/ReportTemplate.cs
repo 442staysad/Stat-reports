@@ -10,8 +10,10 @@ namespace Core.Entities
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public DateTime PeriodStart { get; set; }
-        public DateTime PeriodEnd { get; set; } 
         public string Fields { get; set; } // JSON-структура полей
+        public ICollection<Report> Reports { get; set; } = new List<Report>();
+
+        public SubmissionDeadline SubmissionDeadline { get; set; }
     }
 }
+

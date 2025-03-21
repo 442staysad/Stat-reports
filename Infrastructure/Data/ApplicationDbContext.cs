@@ -36,8 +36,8 @@ using System.Collections.Generic;
                 .HasIndex(rt => rt.Name)
                 .IsUnique();
 
-            // Связи
-            modelBuilder.Entity<User>()
+        // Связи
+        modelBuilder.Entity<User>()
                 .HasOne(u => u.Branch)
                 .WithMany(b => b.Users)
                 .HasForeignKey(u => u.BranchId)
@@ -45,9 +45,10 @@ using System.Collections.Generic;
 
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Template)
-                .WithMany()
+                .WithMany(t => t.Reports)
                 .HasForeignKey(r => r.TemplateId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); 
+
 
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Branch)
@@ -63,8 +64,8 @@ using System.Collections.Generic;
 
             modelBuilder.Entity<SubmissionDeadline>()
                 .HasOne(sd => sd.Template)
-                .WithMany()
-                .HasForeignKey(sd => sd.ReportTemplateId)
+                .WithOne(rt => rt.SubmissionDeadline) // Указываем связь
+                .HasForeignKey<SubmissionDeadline>(sd => sd.ReportTemplateId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SummaryReport>()

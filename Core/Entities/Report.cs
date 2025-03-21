@@ -21,7 +21,4 @@ namespace Core.Entities
         public ICollection<ReportAccess> Accesses { get; set; }
         public string? Comment { get; set; }
     }
-
-
-
 }
