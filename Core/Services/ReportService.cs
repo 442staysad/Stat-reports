@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Core.DTO;
 using Core.Entities;
@@ -17,17 +18,20 @@ namespace Core.Services
         private readonly IRepository<ReportTemplate> _templateRepository;
         private readonly IRepository<SubmissionDeadline> _deadlineRepository;
         private readonly IFileService _fileService;
+        private readonly IExcelSplitterService _excelToJsonService;
 
         public ReportService(
-            IRepository<Report> reportRepository,
+            IRepository<Report> _reportRepository,
             IRepository<ReportTemplate> templateRepository,
             IRepository<SubmissionDeadline> deadlineRepository,
-            IFileService fileService)
+            IFileService fileService,
+            IExcelSplitterService excelToJsonService)
         {
-            _reportRepository = reportRepository;
+            this._reportRepository = _reportRepository;
             _templateRepository = templateRepository;
             _deadlineRepository = deadlineRepository;
             _fileService = fileService;
+            _excelToJsonService = excelToJsonService;
         }
 
         public async Task<IEnumerable<ReportDto>> GetAllReportsAsync()
@@ -90,12 +94,16 @@ namespace Core.Services
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
-            
+
             // Проверяем срок сдачи
             var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
 
             // Сохраняем файл
             var filePath = await _fileService.SaveFileAsync(file, $"Reports/{templateId}");
+
+            // Конвертируем Excel в JSON
+            //var jsonData = await _excelToJsonService.ConvertToJSONAsync(filePath);
+         //   var jsonString = JsonSerializer.Serialize(jsonData);
 
             var report = new Report
             {
@@ -103,6 +111,7 @@ namespace Core.Services
                 TemplateId = templateId,
                 BranchId = branchId,
                 UploadedById = uploadedById,
+               // Fields = jsonString,  // Сохраняем JSON в БД
                 FilePath = filePath,
                 Status = ReportStatus.Черновик,
                 UploadDate = DateTime.UtcNow,

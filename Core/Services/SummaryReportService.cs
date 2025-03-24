@@ -1,9 +1,11 @@
 ﻿using Core.DTO;
 using Core.Entities;
 using Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Core.Services
@@ -11,10 +13,12 @@ namespace Core.Services
     public class SummaryReportService : ISummaryReportService
     {
         private readonly ISummaryReportRepository _summaryReportRepository;
+        private readonly IRepository<Report> _reportRepository;
 
-        public SummaryReportService(ISummaryReportRepository summaryReportRepository)
+        public SummaryReportService(ISummaryReportRepository summaryReportRepository, IRepository<Report> reportRepository)
         {
             _summaryReportRepository = summaryReportRepository;
+            _reportRepository = reportRepository;
         }
 
         public async Task<IEnumerable<SummaryReportDto>> GetAllSummaryReportsAsync()
@@ -48,6 +52,58 @@ namespace Core.Services
 
             await _summaryReportRepository.DeleteAsync(report);
             return true;
+        }
+
+        public async Task<SummaryReportDto> GenerateSummaryReportAsync(List<int> reportIds)
+        {
+            var reports = await _reportRepository
+                .GetAll()
+                .Where(r => reportIds.Contains(r.Id))
+                .ToListAsync();
+
+            // Инициализируем итоговые данные
+            var summaryData = new Dictionary<string, Dictionary<string, decimal>>();
+
+            foreach (var report in reports)
+            {
+                var reportData = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(report.Fields);
+
+                foreach (var sheet in reportData)
+                {
+                    // Обрабатываем каждый лист (например, "Лист1")
+                    foreach (var row in sheet.Value)
+                    {
+                        var rowKey = row["Показатель"].ToString();
+                        foreach (var key in row.Keys.Where(k => k != "Показатель"))
+                        {
+                            if (!summaryData.ContainsKey(rowKey))
+                            {
+                                summaryData[rowKey] = new Dictionary<string, decimal>();
+                            }
+
+                            if (!summaryData[rowKey].ContainsKey(key))
+                            {
+                                summaryData[rowKey][key] = 0;
+                            }
+
+                            // Суммируем данные по каждому ключу
+                            if (decimal.TryParse(row[key]?.ToString(), out var value))
+                            {
+                                summaryData[rowKey][key] += value;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Формируем DTO для сводного отчета
+            var summaryReport = new SummaryReportDto
+            {
+              /*  GeneratedDate = DateTime.UtcNow,
+                Data = summaryData*/
+            };
+
+            return summaryReport;
         }
 
         private SummaryReportDto MapToDto(SummaryReport report)

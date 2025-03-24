@@ -12,5 +12,6 @@ namespace Core.Interfaces
         Task<SummaryReportDto> GetSummaryReportByIdAsync(int id);
         Task<SummaryReportDto> CreateSummaryReportAsync(SummaryReportDto summaryReportDto);
         Task<bool> DeleteSummaryReportAsync(int id); // Новый метод
+        Task<SummaryReportDto> GenerateSummaryReportAsync(List<int> reportIds);
     }
 }

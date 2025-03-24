@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Core.Interfaces
 {
-    public interface IExcelReportMerger
+    public interface IExcelSplitterService
     {
-        Task<byte[]> MergeReportsAsync(List<string> filePaths);
+        byte[] ProcessReports(List<string> filePaths, string templatePath);
     }
 }

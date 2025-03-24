@@ -21,7 +21,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 // Добавляем сервисы (добавим их позже)
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IExcelReportMerger, ExcelReportMerger>();
+builder.Services.AddScoped<IExcelSplitterService, ExcelSplitterService>();
 //ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
 builder.Services.AddScoped<IBranchAuthService, BranchAuthService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();

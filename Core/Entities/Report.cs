@@ -12,6 +12,8 @@ namespace Core.Entities
         public int UploadedById { get; set; }
         public User UploadedBy { get; set; }
 
+        public string Fields { get; set; } // JSON-структура полей
+
         public int BranchId { get; set; }
         public Branch Branch { get; set; }
 

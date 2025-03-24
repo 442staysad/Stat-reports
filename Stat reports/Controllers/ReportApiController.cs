@@ -12,11 +12,29 @@ namespace Stat_reports.Controllers
     [ApiController]
     public class ReportApiController : ControllerBase
     {
+        private readonly IExcelSplitterService _excelToJsonService;
         private readonly IReportService _reportService;
 
-        public ReportApiController(IReportService reportService)
+        public ReportApiController(IReportService reportService, IExcelSplitterService excelToJsonService)
         {
             _reportService = reportService;
+            _excelToJsonService = excelToJsonService;
+        }
+
+        [HttpPost("upload-excel")]
+        public async Task<IActionResult> UploadExcelFile([FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Файл не загружен.");
+
+            var filePath = Path.Combine("uploads", file.FileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+           // var jsonResult = await _excelToJsonService.ConvertToJSONAsync(filePath);
+            return Ok();
         }
 
         [HttpGet]
@@ -74,7 +92,7 @@ namespace Stat_reports.Controllers
             return /*fileBytes == null ? NotFound() :*/ File(fileBytes, "application/octet-stream", $"{reportname}.xlsx");
         }
 
-        [Authorize(Roles = "Admin,Reviewer")]
+       // [Authorize(Roles = "Admin,Reviewer")]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateReportStatus(int id, [FromBody] ReportStatusUpdateDto statusDto)
         {
@@ -94,7 +112,7 @@ namespace Stat_reports.Controllers
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingTemplates()
         {
-            var templates = await _reportService.GetPendingTemplatesAsync();
+            var templates = _reportService.GetPendingTemplatesAsync();
             return Ok(templates);
         }
     }
