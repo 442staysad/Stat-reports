@@ -12,13 +12,13 @@ namespace Core.Entities
         public int UploadedById { get; set; }
         public User UploadedBy { get; set; }
 
-        public string Fields { get; set; } // JSON-структура полей
+        public string? Fields { get; set; } // JSON-структура полей
 
-        public int BranchId { get; set; }
-        public Branch Branch { get; set; }
+        public int? BranchId { get; set; }
+        public Branch? Branch { get; set; }
 
-        public ReportStatus Status { get; set; }
-        public string FilePath { get; set; }//название отчета
+        public ReportStatus? Status { get; set; }
+        public string? FilePath { get; set; }//название отчета
 
         public ICollection<ReportAccess> Accesses { get; set; }
         public string? Comment { get; set; }

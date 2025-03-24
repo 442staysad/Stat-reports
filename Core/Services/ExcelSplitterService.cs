@@ -63,24 +63,23 @@ namespace Core.Services
             // Если мы нашли числовое значение, начинаем с пропуска первой строки
             if (firstNumericRow != -1 && firstNumericColumn != -1)
             {
-                foreach (var row in sourceWorksheet.RowsUsed().Skip(1)) // Пропускаем первую строку с мета-данными
+
+                foreach (var row in sourceWorksheet.RowsUsed())
                 {
-                    foreach (var cell in row.CellsUsed().Skip(firstNumericColumn - 1)) // Проходим по всем ячейкам в строке
+                    if (row.RowNumber() <= firstNumericRow) continue; // Пропускаем все строки ДО первой числовой строки
+
+                    foreach (var cell in row.CellsUsed().Skip(2))
                     {
-                        // Проверяем, является ли ячейка числовой
                         if (double.TryParse(cell.Value.ToString(), out double sourceValue))
                         {
-                            // Находим соответствующую ячейку в итоговом листе
                             var targetCell = targetWorksheet.Cell(cell.Address);
 
-                            // Если ячейка уже содержит значение, добавляем его
                             if (double.TryParse(targetCell.Value.ToString(), out double targetValue))
                             {
                                 targetCell.Value = targetValue + sourceValue;
                             }
                             else
                             {
-                                // Если ячейка пуста, просто записываем значение
                                 targetCell.Value = sourceValue;
                             }
                         }
