@@ -1,13 +1,30 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stat reports", "Stat reports\Stat reports.csproj", "{FEEF9B51-8443-4B6E-9E24-2482F25A92FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{E3004010-98CD-4353-9EE5-E087C4BC23A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{4FD6F9E2-962E-4A43-8B22-C51F243EEB07}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reports", "Reports", "{36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{D618992F-9ED9-4B50-B071-82BC3EEF7A71}"
+	ProjectSection(SolutionItems) = preProject
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\1-ис (инвестиции).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\1-ис (инвестиции).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-вэс (услуги).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-вэс (услуги).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-ис (строительство).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-ис (строительство).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-п.xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-п.xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-т.xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-т.xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-ф (прибыль).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-ф (прибыль).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-ф (расчеты).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\12-ф (расчеты).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\4-ис (инвестиции).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\4-ис (инвестиции).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\4-у.xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\4-у.xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\4-ф (затраты).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\4-ф (затраты).xlsx
+		C:\Users\User\Desktop\Статотчетность_дирекция\templates\6-ис (инвестиции).xlsx = C:\Users\User\Desktop\Статотчетность_дирекция\templates\6-ис (инвестиции).xlsx
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +47,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D618992F-9ED9-4B50-B071-82BC3EEF7A71} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82F5B768-55B3-4148-862C-37B5C281413E}

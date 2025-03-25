@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Interfaces;
+using System.Globalization;
 
 namespace Core.Services
 {
@@ -68,20 +69,24 @@ namespace Core.Services
                 {
                     if (row.RowNumber() <= firstNumericRow) continue; // Пропускаем все строки ДО первой числовой строки
 
-                    foreach (var cell in row.CellsUsed().Skip(2))
+                    foreach (var cell in row.CellsUsed().Skip(2)) // Пропускаем первые два столбца (код, ед. измерения)
                     {
-                        if (double.TryParse(cell.Value.ToString(), out double sourceValue))
+                        // Пробуем распарсить значение ячейки как число
+                        if (double.TryParse(cell.GetValue<string>().Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out double sourceValue))
                         {
                             var targetCell = targetWorksheet.Cell(cell.Address);
 
-                            if (double.TryParse(targetCell.Value.ToString(), out double targetValue))
+                            // Проверяем, является ли целевая ячейка числом (иначе там может быть текст)
+                            if (double.TryParse(targetCell.GetValue<string>().Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out double targetValue))
                             {
-                                targetCell.Value = targetValue + sourceValue;
+                                targetCell.Value = targetValue + sourceValue; // Суммируем
                             }
                             else
                             {
-                                targetCell.Value = sourceValue;
+                                targetCell.Value = sourceValue; // Записываем новое значение, если ранее было пусто
                             }
+
+
                         }
                     }
                 }

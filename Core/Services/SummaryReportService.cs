@@ -12,10 +12,10 @@ namespace Core.Services
 {
     public class SummaryReportService : ISummaryReportService
     {
-        private readonly ISummaryReportRepository _summaryReportRepository;
+        private readonly IRepository<SummaryReport> _summaryReportRepository;
         private readonly IRepository<Report> _reportRepository;
 
-        public SummaryReportService(ISummaryReportRepository summaryReportRepository, IRepository<Report> reportRepository)
+        public SummaryReportService(IRepository<SummaryReport> summaryReportRepository, IRepository<Report> reportRepository)
         {
             _summaryReportRepository = summaryReportRepository;
             _reportRepository = reportRepository;
@@ -29,7 +29,7 @@ namespace Core.Services
 
         public async Task<IEnumerable<SummaryReportDto>> GetSummaryReportsByPeriodAsync(DateTime periodStart, DateTime periodEnd)
         {
-            var reports = await _summaryReportRepository.GetByPeriodAsync(periodStart, periodEnd);
+            var reports = await _summaryReportRepository.GetAllAsync();
             return reports.Select(MapToDto);
         }
 

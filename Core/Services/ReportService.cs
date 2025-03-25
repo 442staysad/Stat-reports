@@ -34,7 +34,7 @@ namespace Core.Services
             _excelToJsonService = excelToJsonService;
         }
 
-        public async Task<IEnumerable<ReportDto>> GetAllReportsAsync()
+       public async Task<IEnumerable<ReportDto>> GetAllReportsAsync()
         {
             var reports = await _reportRepository.GetAllAsync();
             return reports.Select(MapToDto);
@@ -67,8 +67,8 @@ namespace Core.Services
             return MapToDto(updatedReport);
         }
 
-        public async Task<bool> DeleteReportAsync(int id)
-        {
+       public async Task<bool> DeleteReportAsync(int id)
+       {
             var report = await _reportRepository.FindAsync(r => r.Id == id);
             if (report == null) return false;
             
@@ -85,7 +85,40 @@ namespace Core.Services
         }
 
 
+        public ReportService(IRepository<Report> reportRepository)
+        {
+            _reportRepository = reportRepository;
+        }
 
+        /*public async Task<IEnumerable<Report>> GetAllReportsAsync()
+        {
+            return await _reportRepository.GetAllAsync();
+        }
+
+        public async Task<Report> GetReportByIdAsync(int id)
+        {
+            return await _reportRepository.FindAsync(r => r.Id == id);
+        }*/
+
+        public async Task<Report> CreateReportAsync(Report report)
+        {
+            await _reportRepository.AddAsync(report);
+            return report;
+        }
+
+        public async Task<Report> UpdateReportAsync(Report report)
+        {
+            await _reportRepository.DeleteAsync(report);
+            return report;
+        }
+
+      /*  public async Task<bool> DeleteReportAsync(int id)
+        {
+            var report = await _reportRepository.FindAsync(r => r.Id == id);
+            if (report == null) return false;
+            await _reportRepository.DeleteAsync(report);
+            return true;
+        }*/
 
         /// <summary>
         /// Проверяет срок сдачи перед загрузкой отчета.

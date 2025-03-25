@@ -8,13 +8,11 @@ namespace Stat_reports.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IBranchAuthService _branchAuthService;
-        private readonly IUserAuthService _userAuthService;
+        private readonly IAuthService _authService;
 
-        public AuthController(IBranchAuthService branchAuthService, IUserAuthService userAuthService)
+        public AuthController(IAuthService authService)
         {
-            _branchAuthService = branchAuthService;
-            _userAuthService = userAuthService;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -29,7 +27,7 @@ namespace Stat_reports.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var branch = await _branchAuthService.AuthenticateBranchAsync(model.UNP, model.Password);
+            var branch = await _authService.AuthenticateBranchAsync(model.UNP, model.Password);
             if (branch == null)
             {
                 ModelState.AddModelError("", "Неверные УНП или пароль филиала.");
@@ -59,7 +57,7 @@ namespace Stat_reports.Controllers
             if (branchId == null)
                 return RedirectToAction("BranchLogin");
 
-            var user = await _userAuthService.AuthenticateUserAsync(branchId.Value, model.Username, model.Password);
+            var user = await _authService.AuthenticateUserAsync(branchId.Value, model.Username, model.Password);
             if (user == null)
             {
                 ModelState.AddModelError("", "Неверные имя пользователя или пароль.");

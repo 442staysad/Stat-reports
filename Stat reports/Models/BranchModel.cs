@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Core.Entities
+namespace Stat_reports.Models
 {
-    public class Branch : BaseEntity
+    public class BranchModel
     {
+        public int Id { get; set; }
         public string? GoverningName { get; set; }
         public string? HeadName { get; set; }
         public string? Name { get; set; }
@@ -22,10 +18,7 @@ namespace Core.Entities
         public string? Email { get; set; }
         public string? Supervisor { get; set; }
         public string? ChiefAccountant { get; set; }
-        public ICollection<User>? Users { get; set; }
-        public ICollection<Report>? Reports { get; set; }
 
-        [Required]
-        public string? PasswordHash { get; set; } // Хранение пароля филиала
+
     }
 }

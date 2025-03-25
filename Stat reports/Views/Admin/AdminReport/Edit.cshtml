@@ -1,0 +1,56 @@
+﻿@model Stat_reports.Models.ReportModel
+
+@{
+    ViewData["Title"] = "Редактировать отчет";
+}
+
+<h1>Редактировать отчет</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TemplateId" class="control-label"></label>
+        <select asp-for="TemplateId" class="form-control">
+            <option value="">Выберите шаблон</option>
+            @foreach (var template in ViewBag.ReportTemplates)
+            {
+                <option value="@template.Id" selected="@((Model.TemplateId == template.Id) ? "selected" : "")">@template.Name</option>
+
+            }
+        </select>
+        <span asp-validation-for="TemplateId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="BranchId" class="control-label"></label>
+        <select asp-for="BranchId" class="form-control">
+            <option value="">Выберите филиал</option>
+            @foreach (var branch in ViewBag.Branches)
+            {
+                <option value="@branch.Id" selected="@((Model.BranchId == branch.Id) ? "selected" : "")">@branch.Name</option>
+            }
+        </select>
+        <span asp-validation-for="BranchId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Comment" class="control-label"></label>
+        <textarea asp-for="Comment" class="form-control"></textarea>
+        <span asp-validation-for="Comment" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="FilePath" class="control-label">Загрузить файл</label>
+        <input type="file" name="FilePath" class="form-control" />
+        <span asp-validation-for="FilePath" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+</form>
