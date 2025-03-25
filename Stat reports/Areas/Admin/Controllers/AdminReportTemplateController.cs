@@ -3,13 +3,14 @@ using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Stat_ReportTemplates.Areas.Admin
+namespace Stat_reports.Areas.Admin.Controllers
 {
-    public class AdminReportTemplateTemplateController:Controller
+    [Area("Admin")]
+    public class AdminReportTemplateController:Controller
     {
         private readonly IReportTemplateService _ReportTemplateTemplateService;
 
-        public AdminReportTemplateTemplateController(IReportTemplateService ReportTemplateService)
+        public AdminReportTemplateController(IReportTemplateService ReportTemplateService)
         {
             _ReportTemplateTemplateService = ReportTemplateService;
         }

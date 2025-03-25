@@ -3,14 +3,16 @@ using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Stat_reports.Areas.Admin
+namespace Stat_reports.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class AdminReportController : Controller
     {
             private readonly IReportService _reportService;
-
-            public AdminReportController(IReportService reportService)
+            private readonly IBranchService _branchService;
+            public AdminReportController(IReportService reportService, IBranchService branchService)
             {
+                _branchService = branchService;
                 _reportService = reportService;
             }
 
@@ -20,7 +22,12 @@ namespace Stat_reports.Areas.Admin
                 return View(Reportes);
             }
 
-            public IActionResult Create() => View();
+            public async Task<IActionResult> Create() 
+            {
+
+                ViewBag.Branches = await _branchService.GetAllBranchesAsync();
+                return View();
+            }
 
             [HttpPost]
             public async Task<IActionResult> Create(Report Report)
@@ -35,6 +42,7 @@ namespace Stat_reports.Areas.Admin
 
             public async Task<IActionResult> Edit(int id)
             {
+             ViewBag.Branches = await _branchService.GetAllBranchesAsync();
                 var Report = await _reportService.GetReportByIdAsync(id);
                 if (Report == null)
                     return NotFound();

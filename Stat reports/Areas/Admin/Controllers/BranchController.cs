@@ -3,10 +3,9 @@ using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace StatReports.Areas.Admin.Controllers
+namespace Stat_reports.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
     public class BranchController : Controller
     {
         private readonly IBranchService _branchService;

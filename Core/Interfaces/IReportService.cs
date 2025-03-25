@@ -10,7 +10,7 @@ namespace Core.Interfaces
 {
     public interface IReportService
     {
-       Task<IEnumerable<ReportDto>> GetAllReportsAsync();
+       Task<IEnumerable<Report>> GetAllReportsAsync();
       Task<ReportDto> GetReportByIdAsync(int id);
         Task<ReportDto> CreateReportAsync(ReportDto reportDto);
         Task<ReportDto> UpdateReportAsync(int id, ReportDto reportDto);

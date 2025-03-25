@@ -3,18 +3,20 @@ using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace StatReports.Areas.Admin.Controllers
+namespace Stat_reports.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+
     public class UserController : Controller
     {
         private readonly IUserService _userService;
-
-        public UserController(IUserService userService)
+        private readonly IBranchService _branchService;
+        public UserController(IUserService userService,IBranchService branchService)
         {
+            _branchService = branchService;
             _userService = userService;
         }
+
 
         public async Task<IActionResult> Index()
         {
@@ -22,7 +24,11 @@ namespace StatReports.Areas.Admin.Controllers
             return View(branches);
         }
 
-        public IActionResult Create() => View();
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.Branches= await _branchService.GetAllBranchesAsync();
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create(User user)
@@ -37,6 +43,7 @@ namespace StatReports.Areas.Admin.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
+            ViewBag.Branches = await _branchService.GetAllBranchesAsync();
             var branch = await _userService.GetUserByIdAsync(id);
             if (branch == null)
                 return NotFound();

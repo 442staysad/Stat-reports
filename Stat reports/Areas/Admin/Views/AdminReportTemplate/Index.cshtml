@@ -1,0 +1,34 @@
+﻿@model IEnumerable<Core.Entities.ReportTemplate>
+
+@{
+    ViewData["Title"] = "Шаблоны отчетов";
+}
+
+<div class="container">
+    <h1>Список шаблонов отчетов</h1>
+    <a href="@Url.Action("Create", "AdminReportTemplate")" class="btn btn-primary mb-3">Добавить шаблон</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var template in Model)
+            {
+                <tr>
+                    <td>@template.Id</td>
+                    <td>@template.Name</td>
+                    <td>@template.Description</td>
+                    <td>
+                        <a href="@Url.Action("Edit", "AdminReportTemplate", new { id = template.Id })" class="btn btn-warning">Редактировать</a>
+                        <a href="@Url.Action("Delete", "AdminReportTemplate", new { id = template.Id })" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

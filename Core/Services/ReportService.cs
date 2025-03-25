@@ -34,10 +34,10 @@ namespace Core.Services
             _excelToJsonService = excelToJsonService;
         }
 
-       public async Task<IEnumerable<ReportDto>> GetAllReportsAsync()
+       public async Task<IEnumerable<Report>> GetAllReportsAsync()
         {
             var reports = await _reportRepository.GetAllAsync();
-            return reports.Select(MapToDto);
+            return reports;
         }
 
         public async Task<ReportDto> GetReportByIdAsync(int id)

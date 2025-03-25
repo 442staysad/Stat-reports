@@ -21,16 +21,19 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 // Добавляем сервисы (добавим их позже)
+builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReportTemplateService, ReportTemplateService>();
 builder.Services.AddScoped<IExcelSplitterService, ExcelSplitterService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISummaryReportService, SummaryReportService>();
 
 //ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
 builder.Services.AddSingleton<AdminAuthFilter>();
 builder.Services.AddSingleton<AuthorizeBranchAndUserAttribute>();
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ISummaryReportService,SummaryReportService>();
+
 
 // Настройка MVC
 builder.Services.AddScoped<IFileService,FileService>();
@@ -52,6 +55,15 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+app.UseEndpoints(endpoints =>
+{
+    // Указываем маршруты для областей
+    endpoints.MapAreaControllerRoute(
+        name: "admin",
+        areaName: "Admin",
+        pattern: "Admin/{controller=Admin}/{action=Index}/{id?}");
+});
+
 
 app.MapControllerRoute(
     name: "default",
