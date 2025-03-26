@@ -1,4 +1,5 @@
-﻿using Core.Enums;
+﻿using Core.Entities;
+
 namespace Core.DTO
 {
     public class ReportDto:BaseDTO

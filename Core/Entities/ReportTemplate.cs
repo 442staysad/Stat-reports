@@ -9,12 +9,12 @@ namespace Core.Entities
     public class ReportTemplate : BaseEntity
     {
         public string Name { get; set; }
-        public string Description { get; set; }
-        public string Fields { get; set; } // JSON-структура полей
-        public string? FilePath { get; set; }//ЭТО ФАЙЛ НАДО БУДЕТ ЗАГРУЖАТЬ  
-        public ICollection<Report> Reports { get; set; } = new List<Report>();
+        public string? Description { get; set; }
 
-        public SubmissionDeadline SubmissionDeadline { get; set; }
+        public string FilePath { get; set; }//ЭТО ФАЙЛ НАДО БУДЕТ ЗАГРУЖАТЬ  
+        public ICollection<Report>? Reports { get; set; }
+
+        public SubmissionDeadline? SubmissionDeadline { get; set; }
     }
 }
 

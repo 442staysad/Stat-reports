@@ -8,62 +8,121 @@ namespace Stat_reports.Areas.Admin.Controllers
     [Area("Admin")]
     public class AdminReportController : Controller
     {
-            private readonly IReportService _reportService;
-            private readonly IBranchService _branchService;
-            public AdminReportController(IReportService reportService, IBranchService branchService)
-            {
-                _branchService = branchService;
-                _reportService = reportService;
-            }
+        private readonly IReportService _reportService;
+        private readonly IBranchService _branchService;
+        private readonly IReportTemplateService _reportTemplateService;
+        private readonly IFileService _fileService;
 
-            public async Task<IActionResult> Index()
-            {
-                var Reportes = await _reportService.GetAllReportsAsync();
-                return View(Reportes);
-            }
+        public AdminReportController(
+            IReportService reportService,
+            IBranchService branchService,
+            IReportTemplateService reportTemplateService,
+            IFileService fileService)
+        {
+            _branchService = branchService;
+            _reportService = reportService;
+            _reportTemplateService = reportTemplateService;
+            _fileService = fileService;
+        }
 
-            public async Task<IActionResult> Create() 
-            {
+        public async Task<IActionResult> Index()
+        {
+            var reports = await _reportService.GetAllReportsAsync();
+            return View(reports);
+        }
 
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.Branches = await _branchService.GetAllBranchesAsync();
+            ViewBag.ReportTemplates = await _reportTemplateService.GetAllReportTemplatesAsync();
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(Report report, IFormFile file)
+        {
+            if (!ModelState.IsValid)
+            {
                 ViewBag.Branches = await _branchService.GetAllBranchesAsync();
-                return View();
+                ViewBag.ReportTemplates = await _reportTemplateService.GetAllReportTemplatesAsync();
+                return View(report);
             }
 
-            [HttpPost]
-            public async Task<IActionResult> Create(Report Report)
+            // Получаем данные филиала и шаблона
+            var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
+            var template = await _reportTemplateService.GetReportTemplateByIdAsync(report.TemplateId);
+
+            if (branch == null || template == null)
             {
-                if (ModelState.IsValid)
+                ModelState.AddModelError("", "Ошибка: филиал или шаблон не найдены.");
+                return View(report);
+            }
+
+            // Определяем путь сохранения
+            int currentYear = DateTime.Now.Year;
+            string filePath = null;
+
+            if (file != null && file.Length > 0)
+            {
+                string? name = branch.Name;
+                filePath = await _fileService.SaveFileAsync(file, "Reports", name, currentYear, template.Name);
+            }
+
+            report.FilePath = filePath;
+            report.UploadDate = DateTime.UtcNow;
+
+            await _reportService.CreateReportAsync(report);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            var report = await _reportService.GetReportByIdAsync(id);
+            if (report == null)
+                return NotFound();
+
+            ViewBag.Branches = await _branchService.GetAllBranchesAsync();
+            ViewBag.ReportTemplates = await _reportTemplateService.GetAllReportTemplatesAsync();
+            return View(report);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, Report report, IFormFile file)
+        {
+            if (id != report.Id)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Branches = await _branchService.GetAllBranchesAsync();
+                ViewBag.ReportTemplates = await _reportTemplateService.GetAllReportTemplatesAsync();
+                return View(report);
+            }
+
+            var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
+            var template = await _reportTemplateService.GetReportTemplateByIdAsync(report.TemplateId);
+
+            if (branch == null || template == null)
+            {
+                ModelState.AddModelError("", "Ошибка: филиал или шаблон не найдены.");
+                return View(report);
+            }
+
+            // Если загружен новый файл — сохраняем, старый можно удалить при необходимости
+            if (file != null && file.Length > 0)
+            {
+                var newFilePath = await _fileService.SaveFileAsync(file, "Reports", branch.Name, DateTime.Now.Year, template.Name);
+                if (!string.IsNullOrEmpty(report.FilePath))
                 {
-                    await _reportService.CreateReportAsync(Report);
-                    return RedirectToAction(nameof(Index));
+                    await _fileService.DeleteFileAsync(report.FilePath);
                 }
-                return View(Report);
+                report.FilePath = newFilePath;
             }
 
-            public async Task<IActionResult> Edit(int id)
-            {
-             ViewBag.Branches = await _branchService.GetAllBranchesAsync();
-                var Report = await _reportService.GetReportByIdAsync(id);
-                if (Report == null)
-                    return NotFound();
-                return View(Report);
-            }
-
-            [HttpPost]
-            public async Task<IActionResult> Edit(int id, Report Report)
-            {
-                if (id != Report.Id)
-                    return BadRequest();
-
-                if (ModelState.IsValid)
-                {
-                    await _reportService.UpdateReportAsync(Report);
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(Report);
-            }
-
-            public async Task<IActionResult> Delete(int id)
+            await _reportService.UpdateReportAsync(report);
+            return RedirectToAction(nameof(Index));
+        }
+        public async Task<IActionResult> Delete(int id)
             {
                 var Report = await _reportService.GetReportByIdAsync(id);
                 if (Report == null)

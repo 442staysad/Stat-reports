@@ -227,23 +227,29 @@ namespace Core.Services
         private DateTime CalculateDeadline(SubmissionDeadline deadline)
         {
             var now = DateTime.UtcNow;
-
-            switch (deadline.DeadlineType)
+            if (deadline != null)
             {
-                case DeadlineType.Quarterly:
-                    var quarter = (now.Month - 1) / 3 + 1;
-                    var quarterEndMonth = quarter * 3;
-                    return new DateTime(now.Year, quarterEndMonth, deadline.FixedDay ?? 30);
+                switch (deadline.DeadlineType)
+                {
+                    case DeadlineType.Quarterly:
+                        var quarter = (now.Month - 1) / 3 + 1;
+                        var quarterEndMonth = quarter * 3;
+                        return new DateTime(now.Year, quarterEndMonth, deadline.FixedDay ?? 30);
 
-                case DeadlineType.HalfYearly:
-                    var halfYearEndMonth = now.Month <= 6 ? 6 : 12;
-                    return new DateTime(now.Year, halfYearEndMonth, deadline.FixedDay ?? 30);
+                    case DeadlineType.HalfYearly:
+                        var halfYearEndMonth = now.Month <= 6 ? 6 : 12;
+                        return new DateTime(now.Year, halfYearEndMonth, deadline.FixedDay ?? 30);
 
-                case DeadlineType.Yearly:
-                    return new DateTime(now.Year, 12, deadline.FixedDay ?? 30);
+                    case DeadlineType.Yearly:
+                        return new DateTime(now.Year, 12, deadline.FixedDay ?? 30);
 
-                default:
-                    throw new InvalidOperationException("Неизвестный тип дедлайна.");
+                    default:
+                        throw new InvalidOperationException("Неизвестный тип дедлайна.");
+                }
+            }
+            else
+            {
+                return DateTime.Now;
             }
         }
 
@@ -257,7 +263,7 @@ namespace Core.Services
                 SubmissionDate = report.UploadDate,
                 Status = (ReportStatus)report.Status,
                 FilePath = report.FilePath,
-                UploadedById = report.UploadedById,
+                UploadedById = (int)report.UploadedById,
                 BranchId = report.BranchId,
                 TemplateId = report.TemplateId,
                 Comment = report.Comment

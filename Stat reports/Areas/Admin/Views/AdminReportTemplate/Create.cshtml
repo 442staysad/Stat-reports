@@ -9,26 +9,19 @@
 <form asp-action="Create" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label asp-for="Name" class="control-label">Название формы</label>
-        <input asp-for="Name" class="form-control" />
+        <input asp-for="Name" name="Name" class="form-control" required />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="Description" class="control-label">Описание</label>
-        <textarea asp-for="Description" class="form-control"></textarea>
+        <textarea asp-for="Description" name="Description" class="form-control"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="Fields" class="control-label">Структура полей (JSON)</label>
-        <textarea asp-for="Fields" class="form-control"></textarea>
-        <span asp-validation-for="Fields" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="FilePath" class="control-label">Загрузить файл шаблона</label>
-        <input type="file" name="FilePath" class="form-control" />
-        <span asp-validation-for="FilePath" class="text-danger"></span>
+        <label class="control-label">Загрузить файл шаблона</label>
+        <input type="file" name="File" class="form-control" required />
     </div>
 
     <button type="submit" class="btn btn-primary">Создать шаблон</button>

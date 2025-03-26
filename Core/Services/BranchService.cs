@@ -22,7 +22,7 @@ namespace Core.Services
             return await _branchRepository.GetAllAsync();
         }
 
-        public async Task<Branch> GetBranchByIdAsync(int id)
+        public async Task<Branch> GetBranchByIdAsync(int? id)
         {
             return await _branchRepository.FindAsync(b => b.Id == id);
         }

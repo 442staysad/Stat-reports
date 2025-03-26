@@ -8,32 +8,54 @@ namespace Infrastructure.Services
 {
     public class FileService : IFileService
     {
-        private readonly string _rootPath = Path.Combine(Directory.GetCurrentDirectory(), "UploadedReports");
+        private readonly string _rootPath;
 
         public FileService()
         {
+            _rootPath = Path.Combine(Directory.GetCurrentDirectory(), "Reports");
+
             if (!Directory.Exists(_rootPath))
                 Directory.CreateDirectory(_rootPath);
         }
 
-        public async Task<string> SaveFileAsync(IFormFile file, string folder)
+        public async Task<string> SaveFileAsync(IFormFile file, string baseFolder, string branchName = null, int year = 0, string templateName = null)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
 
-            var folderPath = Path.Combine(_rootPath, folder);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-
-            var fileName = $"{file.FileName}";
-            var filePath = Path.Combine(folderPath, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
-            }
+                string folderPath;
 
-            return Path.Combine(folder, fileName);
+                if (baseFolder == "Reports" && branchName != null && year > 0 && templateName != null)
+                {
+                    folderPath = Path.Combine(_rootPath, branchName, year.ToString(), templateName);
+                }
+                else if (baseFolder == "Templates")
+                {
+                    folderPath = Path.Combine(_rootPath, "Templates");
+                }
+                else
+                {
+                    throw new ArgumentException("Некорректный путь сохранения файла");
+                }
+
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                string fullPath = Path.Combine(folderPath, file.FileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                return fullPath; // Сохраняем полный путь файла
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Ошибка при сохранении файла: {ex.Message}", ex);
+            }
         }
 
         public async Task<byte[]> GetFileAsync(string filePath)
