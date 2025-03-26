@@ -71,8 +71,7 @@ namespace Stat_reports.Controllers
             {
                 TemplateId = t.TemplateId,
                 TemplateName = t.TemplateName,
-                Deadline = t.Deadline,
-                Status = t.Status.ToString()
+                Deadline = t.Deadline
             }).ToList();
 
             return View(viewModel);

@@ -66,7 +66,7 @@ namespace Core.Services
 
             foreach (var report in reports)
             {
-                var reportData = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(report.Fields);
+                var reportData = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(report.Comment);
 
                 foreach (var sheet in reportData)
                 {

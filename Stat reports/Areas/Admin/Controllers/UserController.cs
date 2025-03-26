@@ -2,6 +2,7 @@
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stat_reports.Models;
 
 namespace Stat_reports.Areas.Admin.Controllers
 {
@@ -31,14 +32,25 @@ namespace Stat_reports.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(User user)
+        public async Task<IActionResult> Create(UserModel userm)
         {
+            User user= new User
+            {
+                UserName=userm.UserName,
+                FullName=userm.FullName,
+                Role=userm.Role,
+                BranchId=userm.BranchId,
+                Branch=userm.Branch,
+                Email=userm.Email,
+                Number=userm.Number,
+                Position=userm.Position
+            }
             if (ModelState.IsValid)
             {
                 await _userService.CreateUserAsync(user);
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            return View(userm);
         }
 
         public async Task<IActionResult> Edit(int id)

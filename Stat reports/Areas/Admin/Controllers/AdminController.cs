@@ -4,6 +4,8 @@ using Stat_reports.Models;
 using Core.Interfaces;
 using Core.Entities;
 using Microsoft.AspNetCore.Identity;
+
+
 namespace Stat_reports.Areas.Admin.Controllers
 {
     [Area("Admin")]
@@ -19,7 +21,7 @@ namespace Stat_reports.Areas.Admin.Controllers
             IReportService _reportService, IReportTemplateService _reportTemplateService) {
             branchService = _branchService;
             userService = _userService;
-            reportTemplateService = _reportTemplateService;    
+            reportTemplateService = _reportTemplateService;  
             reportService = _reportService;
 
         

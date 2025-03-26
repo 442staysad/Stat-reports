@@ -146,7 +146,7 @@ namespace Core.Services
                 UploadedById = uploadedById,
                // Fields = jsonString,  // Сохраняем JSON в БД
                 FilePath = filePath,
-                Status = ReportStatus.Черновик,
+                
                 UploadDate = DateTime.UtcNow,
             };
 
@@ -162,7 +162,7 @@ namespace Core.Services
             var report = await _reportRepository.FindAsync(r => r.Id == reportId);
             if (report == null) return false;
 
-            report.Status = (ReportStatus)status;
+          //  report.Status = (ReportStatus)status;
             report.Comment = remarks;
 
             await _reportRepository.UpdateAsync(report);
