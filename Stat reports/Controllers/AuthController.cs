@@ -30,7 +30,7 @@ namespace Stat_reports.Controllers
             var branch = await _authService.AuthenticateBranchAsync(model.UNP, model.Password);
             if (branch == null)
             {
-                ModelState.AddModelError("", "Неверные УНП или пароль филиала.");
+                ModelState.AddModelError("", "Неверные УНП или пароль.");
                 return View(model);
             }
 

@@ -18,14 +18,12 @@ namespace Stat_reports.Areas.Admin.Controllers
         private readonly IReportTemplateService reportTemplateService;
      
         public AdminController(IBranchService _branchService, IUserService _userService, 
-            IReportService _reportService, IReportTemplateService _reportTemplateService) {
+            IReportService _reportService, IReportTemplateService _reportTemplateService) 
+        {
             branchService = _branchService;
             userService = _userService;
             reportTemplateService = _reportTemplateService;  
             reportService = _reportService;
-
-        
-
         }
 
         public IActionResult Index()
