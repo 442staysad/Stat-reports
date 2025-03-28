@@ -20,9 +20,9 @@
             <option value="Draft" selected="@(Model.Status.ToString() == "Draft")">Черновик</option>
             <option value="Reviewed" selected="@(Model.Status.ToString() == "Reviewed")">Проверено</option>
             <option value="NeedsCorrection" selected="@(Model.Status.ToString() == "NeedsCorrection")">Необходима корректировка</option>
+            <option value="InProgress" selected="@(Model.Status.ToString() == "InProgress")">В работе</option>
         </select>
     </div>
-
     <button type="submit" class="btn btn-success">Сохранить</button>
 </form>
 <a href="@Url.Action("Index", "ReportMvc")">Вернуться к списку отчетов</a>

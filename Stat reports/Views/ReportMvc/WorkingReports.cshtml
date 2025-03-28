@@ -36,15 +36,15 @@
                         <td>
                             @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
                             {
-                                <span class="badge bg-warning">@item.Status</span>
+                                <span class="badge bg-warning">@Html.DisplayFor(modelitem =>item.Status)</span>
                             }
                             else if (item.Status == "Reviewed")
                             {
-                                <span class="badge bg-success">@item.Status</span>
+                                <span class="badge bg-success">@Html.DisplayFor(modelitem => item.Status)</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">@item.Status</span>
+                                <span class="badge bg-secondary">@Html.DisplayFor(modelitem => item.Status)</span>
                             }
                         </td>
                         <td>@item.Comment</td>
