@@ -20,9 +20,10 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Название шаблона</th>
-                    <th>Дедлайн</th>
+                    <th>Отчет</th>
+                    <th>Дата предоставления</th>
                     <th>Статус</th>
+                    <th>Примечание</th>
                     <th>Действия</th>
                 </tr>
             </thead>
@@ -46,15 +47,16 @@
                                 <span class="badge bg-secondary">@item.Status</span>
                             }
                         </td>
+                        <td>@item.Comment</td>
                         <td>
                             @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
                             {
                                 <a href="@Url.Action("Upload", "ReportMvc", new { templateId = item.TemplateId })" class="btn btn-sm btn-primary">Загрузить отчет</a>
-                                <a href="@Url.Action("Reload", "ReportMvc", new { templateId = item.TemplateId })" class="btn btn-sm btn-success">Перезагрузить</a>
+                                <a href="@Url.Action("Reload", "ReportMvc", new { reportId = item.reportId })" class="btn btn-sm btn-success">Перезагрузить</a>
                             }
                             @if (item.Status == "NeedsCorrection")
                             {
-                                <a href="@Url.Action("Delete", "ReportMvc", new { templateId = item.TemplateId })" class="btn btn-sm btn-danger">Удалить</a>
+                                <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.reportId })" class="btn btn-sm btn-danger">Удалить</a>
                             }
                         </td>
                     </tr>

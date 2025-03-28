@@ -55,7 +55,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 Id = ReportTemplate.Id,
                 Name = ReportTemplate.Name,
                 Description = ReportTemplate.Description,
-                SubmissionDeadline = ReportTemplate.SubmissionDeadline,
+                //SubmissionDeadline = ReportTemplate.SubmissionDeadline,
                 File = (IFormFile)_fileService.GetFileAsync(ReportTemplate.FilePath)
             };
             if (ReportTemplate == null)
@@ -84,7 +84,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                     }
 
                     // Сохраняем новый файл
-                    existingTemplate.FilePath = await _fileService.SaveFileAsync(FilePath, "ReportTemplates");
+                    existingTemplate.FilePath = await _fileService.SaveFileAsync(FilePath, "Templates");
                 }
 
                 existingTemplate.Name = model.Name;
