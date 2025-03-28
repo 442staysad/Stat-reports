@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Entities;
+using Core.Enums;
 
 namespace Stat_reports.ViewModels
 {

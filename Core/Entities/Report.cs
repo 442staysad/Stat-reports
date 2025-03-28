@@ -1,4 +1,6 @@
-﻿namespace Core.Entities
+﻿using Core.Enums;
+
+namespace Core.Entities
 {
     public class Report : BaseEntity
     {
@@ -14,7 +16,7 @@
         public Branch? Branch { get; set; }
 
         public int? ReportStatusId { get; set; } = 1;
-        public ReportStatus? Status { get; set; };
+        public ReportStatus? Status { get; set; }
         public string FilePath { get; set; }//название отчета
 
         public ICollection<ReportAccess>? Accesses { get; set; }

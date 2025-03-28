@@ -34,17 +34,17 @@ namespace Stat_reports.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UserModel userm)
         {
-            User user= new User
+            User user = new User
             {
-                UserName=userm.UserName,
-                FullName=userm.FullName,
-                Role=userm.Role,
-                BranchId=userm.BranchId,
-                Branch=userm.Branch,
-                Email=userm.Email,
-                Number=userm.Number,
-                Position=userm.Position
-            }
+                UserName = userm.UserName,
+                FullName = userm.FullName,
+                Role = userm.Role,
+                BranchId = userm.BranchId,
+                Branch = userm.Branch,
+                Email = userm.Email,
+                Number = userm.Number,
+                Position = userm.Position
+            };
             if (ModelState.IsValid)
             {
                 await _userService.CreateUserAsync(user);
@@ -56,10 +56,10 @@ namespace Stat_reports.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             ViewBag.Branches = await _branchService.GetAllBranchesAsync();
-            var branch = await _userService.GetUserByIdAsync(id);
-            if (branch == null)
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null)
                 return NotFound();
-            return View(branch);
+            return View(user);
         }
 
         [HttpPost]
