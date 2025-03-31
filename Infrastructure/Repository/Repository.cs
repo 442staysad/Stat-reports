@@ -8,6 +8,7 @@ using Core.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repository
 {
@@ -30,6 +31,16 @@ namespace Infrastructure.Repository
             if (includes != null)
                 return includes(query);
             return query;
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().AnyAsync(predicate);
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
 
         /// <summary>

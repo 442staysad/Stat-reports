@@ -45,12 +45,19 @@ namespace Stat_reports.Models
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public string? FilePath { get; set; } // Путь к файлу шаблона
-        public IFormFile? File { get; set; } // Для загрузки файла отчета
+        public string? FilePath { get; set; }
+        public IFormFile? File { get; set; }
         public ICollection<Report>? Reports { get; set; }
-
         public SubmissionDeadline? SubmissionDeadline { get; set; }
+
+        // Новые свойства для дедлайна
+        public DeadlineType DeadlineType { get; set; }
+        public int? FixedDay { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? ReportDate { get; set; }
     }
+
     public class UserModel
     {
         public int Id { get; set; }

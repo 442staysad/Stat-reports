@@ -17,24 +17,30 @@ namespace Core.Services
         private readonly IRepository<Report> _reportRepository;
         private readonly IRepository<ReportTemplate> _templateRepository;
         private readonly IRepository<SubmissionDeadline> _deadlineRepository;
+        private readonly IRepository<Branch> _branchRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly IFileService _fileService;
-        private readonly IExcelSplitterService _excelToJsonService;
+        private readonly IDeadlineService _deadlineService;
 
         public ReportService(
             IRepository<Report> _reportRepository,
             IRepository<ReportTemplate> templateRepository,
             IRepository<SubmissionDeadline> deadlineRepository,
             IFileService fileService,
-            IExcelSplitterService excelToJsonService)
+            IDeadlineService deadlineService, 
+            IRepository<Branch> branchrepository,
+            IRepository<User> userRepository)
         {
             this._reportRepository = _reportRepository;
             _templateRepository = templateRepository;
             _deadlineRepository = deadlineRepository;
             _fileService = fileService;
-            _excelToJsonService = excelToJsonService;
+            _deadlineService = deadlineService;
+            _userRepository = userRepository;
+            _branchRepository = branchrepository;
         }
 
-       public async Task<IEnumerable<Report>> GetAllReportsAsync()
+        public async Task<IEnumerable<Report>> GetAllReportsAsync()
         {
             var reports = await _reportRepository.GetAllAsync();
             return reports;
@@ -90,16 +96,6 @@ namespace Core.Services
             _reportRepository = reportRepository;
         }
 
-        /*public async Task<IEnumerable<Report>> GetAllReportsAsync()
-        {
-            return await _reportRepository.GetAllAsync();
-        }
-
-        public async Task<Report> GetReportByIdAsync(int id)
-        {
-            return await _reportRepository.FindAsync(r => r.Id == id);
-        }*/
-
         public async Task<Report> CreateReportAsync(Report report)
         {
             await _reportRepository.AddAsync(report);
@@ -112,14 +108,6 @@ namespace Core.Services
             return report;
         }
 
-      /*  public async Task<bool> DeleteReportAsync(int id)
-        {
-            var report = await _reportRepository.FindAsync(r => r.Id == id);
-            if (report == null) return false;
-            await _reportRepository.DeleteAsync(report);
-            return true;
-        }*/
-
         /// <summary>
         /// Проверяет срок сдачи перед загрузкой отчета.
         /// </summary>
@@ -127,16 +115,15 @@ namespace Core.Services
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
+            string? branchname = (await _branchRepository.FindAsync(b => b.Id == branchId)).Name;
+           
 
+            string? templateName = (await _templateRepository.FindAsync(t => t.Id == templateId)).Name;
             // Проверяем срок сдачи
             var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
 
             // Сохраняем файл
-            var filePath = await _fileService.SaveFileAsync(file, $"Reports/{templateId}");
-
-            // Конвертируем Excel в JSON
-            //var jsonData = await _excelToJsonService.ConvertToJSONAsync(filePath);
-         //   var jsonString = JsonSerializer.Serialize(jsonData);
+            var filePath = await _fileService.SaveFileAsync(file, $"Reports/{branchname}/{DateTime.Now.Year}/{templateName}/");
 
             var report = new Report
             {
@@ -144,7 +131,6 @@ namespace Core.Services
                 TemplateId = templateId,
                 BranchId = branchId,
                 UploadedById = uploadedById,
-               // Fields = jsonString,  // Сохраняем JSON в БД
                 FilePath = filePath,
                 
                 UploadDate = DateTime.UtcNow,
@@ -157,15 +143,22 @@ namespace Core.Services
         /// <summary>
         /// Изменение статуса отчета (например, после проверки).
         /// </summary>
-        public async Task<bool> UpdateReportStatusAsync(int reportId, int status, string remarks)
+        public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
         {
-            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            var report = await _reportRepository.FindAsync(r=>r.Id==reportId);
             if (report == null) return false;
 
-          //  report.Status = (ReportStatus)status;
-            report.Comment = remarks;
+            report.Status = newStatus;
+            if (!string.IsNullOrEmpty(remarks))
+                report.Comment = remarks;
 
-            await _reportRepository.UpdateAsync(report);
+            _reportRepository.UpdateAsync(report);
+
+            if (newStatus == ReportStatus.Reviewed)
+            {
+                await _deadlineService.CheckAndUpdateDeadlineAsync(report.TemplateId);
+            }
+
             return true;
         }
 
@@ -194,65 +187,42 @@ namespace Core.Services
         public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync()
         {
             var today = DateTime.UtcNow;
-            var templates = await _templateRepository
-                .GetAll()
-                .Include(t => t.SubmissionDeadline) // Исправлено
+            var templates = await _deadlineRepository
+                .GetAll(q => q.Include(t => t.Template)) // Обязательно загружаем Template
                 .ToListAsync();
 
             var pendingTemplates = new List<PendingTemplateDto>();
 
             foreach (var template in templates)
             {
-                var deadline = CalculateDeadline(template.SubmissionDeadline); // Добавить реализацию метода
-                if (deadline > today && deadline <= today.AddMonths(1)) // Дедлайн в ближайший месяц
+                if (template == null)
                 {
-                    var existingReport = await _reportRepository.FindAsync(r =>
-                        r.TemplateId == template.Id &&
-                        r.UploadDate.Year == today.Year &&
-                        r.UploadDate.Month == today.Month);
-
-                    pendingTemplates.Add(new PendingTemplateDto
-                    {
-                        TemplateId = template.Id,
-                        TemplateName = template.Name,
-                        Deadline = deadline,
-                        Status = (ReportStatus)(existingReport?.Status)
-                    });
+                    Console.WriteLine("Ошибка: template == null");
+                    continue;
                 }
+
+                if (template.Template == null)
+                {
+                    Console.WriteLine($"Ошибка: template.Template == null (TemplateId: {template.ReportTemplateId})");
+                }
+
+                var existingReport = await _reportRepository.FindAsync(r =>
+                    r.TemplateId == template.ReportTemplateId &&
+                    r.UploadDate.Year == today.Year &&
+                    r.UploadDate.Month == today.Month);
+
+                pendingTemplates.Add(new PendingTemplateDto
+                {
+                    TemplateId = template.ReportTemplateId,
+                    TemplateName = template.Template?.Name ?? "Неизвестный шаблон",
+                    Deadline = template.DeadlineDate,
+                    Status = existingReport?.Status.ToString() ?? "Draft",
+                    ReportId = existingReport?.Id
+                });
             }
 
             return pendingTemplates;
         }
-
-        private DateTime CalculateDeadline(SubmissionDeadline deadline)
-        {
-            var now = DateTime.UtcNow;
-            if (deadline != null)
-            {
-                switch (deadline.DeadlineType)
-                {
-                    case DeadlineType.Quarterly:
-                        var quarter = (now.Month - 1) / 3 + 1;
-                        var quarterEndMonth = quarter * 3;
-                        return new DateTime(now.Year, quarterEndMonth, deadline.FixedDay ?? 30);
-
-                    case DeadlineType.HalfYearly:
-                        var halfYearEndMonth = now.Month <= 6 ? 6 : 12;
-                        return new DateTime(now.Year, halfYearEndMonth, deadline.FixedDay ?? 30);
-
-                    case DeadlineType.Yearly:
-                        return new DateTime(now.Year, 12, deadline.FixedDay ?? 30);
-
-                    default:
-                        throw new InvalidOperationException("Неизвестный тип дедлайна.");
-                }
-            }
-            else
-            {
-                return DateTime.Now;
-            }
-        }
-
 
         private ReportDto MapToDto(Report report)
         {
@@ -261,9 +231,9 @@ namespace Core.Services
                 Id = report.Id,
                 Name = report.Name,
                 SubmissionDate = report.UploadDate,
-                Status = (ReportStatus)report.Status,
+                Status = report.Status ?? 0,
                 FilePath = report.FilePath,
-                UploadedById = (int)report.UploadedById,
+                UploadedById = report.UploadedById ?? 0, // Fix for nullable type
                 BranchId = report.BranchId,
                 TemplateId = report.TemplateId,
                 Comment = report.Comment

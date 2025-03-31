@@ -62,11 +62,17 @@ using System.Collections.Generic;
                 .HasForeignKey(r => r.UploadedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<SubmissionDeadline>()
-                .HasOne(sd => sd.Template)
-                .WithOne(rt => rt.SubmissionDeadline) // Указываем связь
-                .HasForeignKey<SubmissionDeadline>(sd => sd.ReportTemplateId)
+            /*  modelBuilder.Entity<SubmissionDeadline>()
+                  .HasOne(sd => sd.Template)
+                  .WithOne(rt => rt.SubmissionDeadline) // Указываем связь
+                  .HasForeignKey<SubmissionDeadline>(sd => sd.ReportTemplateId)
+                  .OnDelete(DeleteBehavior.Cascade);*/
+            modelBuilder.Entity<ReportTemplate>()
+                .HasMany(rt => rt.Deadlines)
+                .WithOne(d => d.Template)
+                .HasForeignKey(d => d.ReportTemplateId)
                 .OnDelete(DeleteBehavior.Cascade);
+
 
             modelBuilder.Entity<SummaryReport>()
                 .HasOne(sr => sr.ReportTemplate)

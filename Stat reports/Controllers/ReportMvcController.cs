@@ -27,16 +27,28 @@ namespace Stat_reports.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Upload(int templateId, int branchId, int uploadedById, IFormFile file)
+        public async Task<IActionResult> UploadReport(int templateId, IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
-                ModelState.AddModelError("", "Файл не выбран");
-                return View();
+                TempData["Error"] = "Файл не выбран";
+                return RedirectToAction(nameof(WorkingReports));
             }
 
-            await _reportService.UploadReportAsync(templateId, branchId, uploadedById, file);
-            return RedirectToAction(nameof(Index));
+            // Получаем текущие UserId и BranchId из сессии
+            int? userId = HttpContext.Session.GetInt32("UserId");
+            int? branchId = HttpContext.Session.GetInt32("BranchId");
+
+            if (userId == null || branchId == null)
+            {
+                TempData["Error"] = "Ошибка авторизации";
+                return RedirectToAction(nameof(WorkingReports));
+            }
+
+            await _reportService.UploadReportAsync(templateId, branchId.Value, userId.Value, file);
+            TempData["Success"] = "Отчет успешно загружен";
+
+            return RedirectToAction(nameof(WorkingReports));
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -71,7 +83,10 @@ namespace Stat_reports.Controllers
             {
                 TemplateId = t.TemplateId,
                 TemplateName = t.TemplateName,
-                Deadline = t.Deadline
+                Deadline = t.Deadline,
+                Status = t.Status,
+                Comment = t.Comment,
+                ReportId = t.ReportId
             }).ToList();
 
             return View(viewModel);

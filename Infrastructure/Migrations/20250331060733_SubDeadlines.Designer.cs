@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250331060733_SubDeadlines")]
+    partial class SubDeadlines
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,7 +217,8 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReportTemplateId");
+                    b.HasIndex("ReportTemplateId")
+                        .IsUnique();
 
                     b.ToTable("SubmissionDeadlines");
                 });
@@ -354,8 +358,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.SubmissionDeadline", b =>
                 {
                     b.HasOne("Core.Entities.ReportTemplate", "Template")
-                        .WithMany("Deadlines")
-                        .HasForeignKey("ReportTemplateId")
+                        .WithOne("SubmissionDeadline")
+                        .HasForeignKey("Core.Entities.SubmissionDeadline", "ReportTemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -397,9 +401,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.ReportTemplate", b =>
                 {
-                    b.Navigation("Deadlines");
-
                     b.Navigation("Reports");
+
+                    b.Navigation("SubmissionDeadline");
                 });
 
             modelBuilder.Entity("Core.Entities.SummaryReport", b =>

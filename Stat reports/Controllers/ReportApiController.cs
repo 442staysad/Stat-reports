@@ -92,16 +92,6 @@ namespace Stat_reports.Controllers
             return /*fileBytes == null ? NotFound() :*/ File(fileBytes, "application/octet-stream", $"{reportname}.xlsx");
         }
 
-       // [Authorize(Roles = "Admin,Reviewer")]
-        [HttpPatch("{id}/status")]
-        public async Task<IActionResult> UpdateReportStatus(int id, [FromBody] ReportStatusUpdateDto statusDto)
-        {
-            if (statusDto == null) return BadRequest("Invalid data.");
-
-            var result = await _reportService.UpdateReportStatusAsync(id, statusDto.Status, statusDto.Remarks);
-            return result ? Ok() : NotFound();
-        }
-
         [HttpPut("{reportId}/comment")]
         public async Task<IActionResult> AddReportComment(int reportId, [FromBody] string comment)
         {

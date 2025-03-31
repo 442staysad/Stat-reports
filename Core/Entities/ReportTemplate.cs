@@ -13,8 +13,7 @@ namespace Core.Entities
 
         public string FilePath { get; set; }//ЭТО ФАЙЛ НАДО БУДЕТ ЗАГРУЖАТЬ  
         public ICollection<Report>? Reports { get; set; }
-
-        public SubmissionDeadline? SubmissionDeadline { get; set; }
+        public ICollection<SubmissionDeadline>? Deadlines { get; set; }
     }
 }
 

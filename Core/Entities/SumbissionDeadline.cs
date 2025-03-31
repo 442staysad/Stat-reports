@@ -8,9 +8,12 @@ namespace Core.Entities
 {
     public class SubmissionDeadline : BaseEntity
     {
-        public int? ReportTemplateId { get; set; }
-        public ReportTemplate? Template { get; set; }
-        public DeadlineType DeadlineType { get; set; } // Тип дедлайна (26-е, квартал, полгода, год)
+        public int ReportTemplateId { get; set; }
+        public ReportTemplate Template { get; set; }
+        public DeadlineType DeadlineType { get; set; }
+        public DateTime DeadlineDate { get; set; }
         public int? FixedDay { get; set; } // Например, 26-е число (если есть)
+        public string? Comment { get; set; }
+        public bool IsClosed { get; set; } // Новый флаг
     }
 }

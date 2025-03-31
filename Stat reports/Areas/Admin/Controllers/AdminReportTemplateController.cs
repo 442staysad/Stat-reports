@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Services;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +12,16 @@ namespace Stat_reports.Areas.Admin.Controllers
     public class AdminReportTemplateController : Controller
     {
         private readonly IReportTemplateService _reportTemplateService;
+        private readonly IDeadlineService _deadlineService;
         private readonly IFileService _fileService;
+        private readonly ILogger<AdminReportTemplateController> _logger;
 
-        public AdminReportTemplateController(IReportTemplateService reportTemplateService, IFileService fileService)
+        public AdminReportTemplateController(IReportTemplateService reportTemplateService, IFileService fileService, IDeadlineService deadlineService, ILogger<AdminReportTemplateController> logger)
         {
             _reportTemplateService = reportTemplateService;
             _fileService = fileService;
+            _deadlineService = deadlineService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -27,23 +32,33 @@ namespace Stat_reports.Areas.Admin.Controllers
 
         public IActionResult Create() => View();
 
-        [HttpPost]
+       [HttpPost]
         public async Task<IActionResult> Create(ReportTemplateModel model, IFormFile file)
         {
+            _logger.LogInformation($"type {model.DeadlineType},reportfixedday {model.FixedDay}, reportdate {model.ReportDate}");
+            // Сохранение файла
             string filePath = null;
             if (file != null && file.Length > 0)
             {
                 filePath = await _fileService.SaveFileAsync(file, "Templates");
             }
 
+            // Создание шаблона отчета
             var reportTemplate = new ReportTemplate
             {
                 Name = model.Name,
                 Description = model.Description,
-                FilePath = filePath
+                FilePath = filePath,
+                
             };
 
-            await _reportTemplateService.CreateReportTemplateAsync(reportTemplate);
+            // Создание шаблона в базе данных
+            var createdTemplate = await _reportTemplateService.
+                CreateReportTemplateAsync(reportTemplate,model.DeadlineType,(int)model.FixedDay,(DateTime)model.ReportDate);
+
+
+
+            // Перенаправление на страницу списка шаблонов
             return RedirectToAction(nameof(Index));
         }
 
@@ -100,10 +115,10 @@ namespace Stat_reports.Areas.Admin.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            var ReportTemplate = await _reportTemplateService.GetReportTemplateByIdAsync(id);
-            if (ReportTemplate == null)
+            var template = await _reportTemplateService.GetReportTemplateByIdAsync(id);
+            if (template == null)
                 return NotFound();
-            return View(ReportTemplate);
+            return View(template);
         }
 
         [HttpPost, ActionName("Delete")]

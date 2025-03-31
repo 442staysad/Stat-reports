@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Core.Interfaces
 {
@@ -22,5 +23,7 @@ namespace Core.Interfaces
         Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entityList);
         Task<IEnumerable<T>> DeleteRangeAsync(IEnumerable<T> entityList);
         Task<IEnumerable<T>> UpdateRangeAsync(IEnumerable<T> entityList);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+        Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }

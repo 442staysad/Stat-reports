@@ -28,7 +28,7 @@ builder.Services.AddScoped<IReportTemplateService, ReportTemplateService>();
 builder.Services.AddScoped<IExcelSplitterService, ExcelSplitterService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISummaryReportService, SummaryReportService>();
-
+builder.Services.AddScoped<IDeadlineService, DeadlineService>();
 //ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
 builder.Services.AddSingleton<AdminAuthFilter>();
 builder.Services.AddSingleton<AuthorizeBranchAndUserAttribute>();
@@ -67,7 +67,7 @@ app.UseEndpoints(endpoints =>
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=ReportMvc}/{action=Index}/{id?}");
+    pattern: "{controller=ReportMvc}/{action=WorkingReports}/{id?}");
 app.Run();
 
 

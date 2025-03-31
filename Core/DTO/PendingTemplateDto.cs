@@ -8,11 +8,13 @@ using Core.Enums;
 
 namespace Core.DTO
 {
-    public class PendingTemplateDto
+    public class PendingTemplateDto:BaseDTO
     {
         public int TemplateId { get; set; }
-        public string? TemplateName { get; set; }
+        public string TemplateName { get; set; }
         public DateTime Deadline { get; set; }
-        public ReportStatus Status { get; set; }
+        public string? Status { get; set; }
+        public string? Comment { get; set; }
+        public int? ReportId { get; set; } // ID загруженного отчета (если есть)
     }
 }

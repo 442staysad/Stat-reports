@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250331061821_SubDeadlines2")]
+    partial class SubDeadlines2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -212,9 +215,16 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ReportTemplateId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ReportTemplateId1")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ReportTemplateId");
+
+                    b.HasIndex("ReportTemplateId1")
+                        .IsUnique()
+                        .HasFilter("[ReportTemplateId1] IS NOT NULL");
 
                     b.ToTable("SubmissionDeadlines");
                 });
@@ -354,10 +364,14 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.SubmissionDeadline", b =>
                 {
                     b.HasOne("Core.Entities.ReportTemplate", "Template")
-                        .WithMany("Deadlines")
+                        .WithMany()
                         .HasForeignKey("ReportTemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Core.Entities.ReportTemplate", null)
+                        .WithOne("SubmissionDeadline")
+                        .HasForeignKey("Core.Entities.SubmissionDeadline", "ReportTemplateId1");
 
                     b.Navigation("Template");
                 });
@@ -397,9 +411,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.ReportTemplate", b =>
                 {
-                    b.Navigation("Deadlines");
-
                     b.Navigation("Reports");
+
+                    b.Navigation("SubmissionDeadline");
                 });
 
             modelBuilder.Entity("Core.Entities.SummaryReport", b =>
