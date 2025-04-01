@@ -98,12 +98,12 @@ namespace Stat_reports.Controllers
             var result = await _reportService.AddReportCommentAsync(reportId, comment);
             return result ? Ok(new { Message = "Комментарий добавлен" }) : NotFound();
         }
-
+        /*
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingTemplates()
         {
             var templates = _reportService.GetPendingTemplatesAsync();
             return Ok(templates);
-        }
+        }*/
     }
 }

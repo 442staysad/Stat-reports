@@ -40,20 +40,10 @@ namespace Core.Services
                 var isAccepted = await _reportRepository
                     .AnyAsync(r => r.TemplateId == templateId && r.Status == ReportStatus.Reviewed);
 
-                if (isAccepted || deadline.DeadlineDate <= DateTime.UtcNow)
+                if (isAccepted)
                 {
-                    deadline.IsClosed = true;
+                    deadline.DeadlineDate = CalculateNextDeadline(deadline);
                     await _deadlineRepository.UpdateAsync(deadline);
-
-                    var newDeadline = new SubmissionDeadline
-                    {
-                        ReportTemplateId = templateId,
-                        DeadlineType = deadline.DeadlineType,
-                        DeadlineDate = CalculateNextDeadline(deadline),
-                        IsClosed = false
-                    };
-
-                    await _deadlineRepository.AddAsync(newDeadline);
                 }
 
                 await transaction.CommitAsync();
@@ -93,10 +83,10 @@ namespace Core.Services
             var now = DateTime.UtcNow;
             return deadline.DeadlineType switch
             {
-                DeadlineType.Monthly => AdjustDate(now.AddMonths(1), deadline.FixedDay ?? 30),
-                DeadlineType.Quarterly => AdjustDate(now.AddMonths(3 - (now.Month - 1) % 3), deadline.FixedDay ?? 30),
-                DeadlineType.HalfYearly => AdjustDate(now.AddMonths(6 - (now.Month - 1) % 6), deadline.FixedDay ?? 30),
-                DeadlineType.Yearly => AdjustDate(now.AddYears(1), deadline.FixedDay ?? 30),
+                DeadlineType.Monthly => AdjustDate(deadline.DeadlineDate.AddMonths(1), deadline.FixedDay ?? 30),
+                DeadlineType.Quarterly => AdjustDate(deadline.DeadlineDate.AddMonths(3 - (deadline.DeadlineDate.Month - 1) % 3), deadline.FixedDay ?? 30),
+                DeadlineType.HalfYearly => AdjustDate(deadline.DeadlineDate.AddMonths(6 - (deadline.DeadlineDate.Month - 1) % 6), deadline.FixedDay ?? 30),
+                DeadlineType.Yearly => AdjustDate(deadline.DeadlineDate.AddYears(1), deadline.FixedDay ?? 30),
                 _ => now
             };
         }

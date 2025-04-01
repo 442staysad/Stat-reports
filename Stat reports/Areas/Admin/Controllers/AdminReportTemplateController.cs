@@ -35,7 +35,6 @@ namespace Stat_reports.Areas.Admin.Controllers
        [HttpPost]
         public async Task<IActionResult> Create(ReportTemplateModel model, IFormFile file)
         {
-            _logger.LogInformation($"type {model.DeadlineType},reportfixedday {model.FixedDay}, reportdate {model.ReportDate}");
             // Сохранение файла
             string filePath = null;
             if (file != null && file.Length > 0)
@@ -71,7 +70,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 Name = ReportTemplate.Name,
                 Description = ReportTemplate.Description,
                 //SubmissionDeadline = ReportTemplate.SubmissionDeadline,
-                File = (IFormFile)_fileService.GetFileAsync(ReportTemplate.FilePath)
+                //File = (IFormFile)_fileService.GetFileAsync(ReportTemplate.FilePath)
             };
             if (ReportTemplate == null)
                 return NotFound();

@@ -7,6 +7,7 @@
         public DateTime Deadline { get; set; }
         public string? Status { get; set; }
         public string? Comment { get; set; }
-        public int? ReportId { get; set; } // ID загруженного отчета (если есть)
+        public int? ReportId { get; set; }
+        public int BranchId { get; set; } // Add this property
     }
 }

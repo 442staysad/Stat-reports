@@ -1,23 +1,35 @@
 ﻿using System.Threading.Tasks;
 using Core.DTO;
+using Core.Enums;
 using Core.Interfaces;
+using Core.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stat_reports.ViewModels;
+using Stat_reportsnt.Filters;
 namespace Stat_reports.Controllers
 {
+    [AuthorizeBranchAndUser]
     public class ReportMvcController : Controller
     {
         private readonly IReportService _reportService;
+        private readonly IDeadlineService _deadlineService;
 
-        public ReportMvcController(IReportService reportService)
+        public ReportMvcController(IReportService reportService, IDeadlineService deadlineService)
         {
             _reportService = reportService;
+            _deadlineService = deadlineService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var reports = await _reportService.GetAllReportsAsync();
+            if (!HttpContext.Session.TryGetValue("BranchId", out var branchIdBytes))
+            {
+                return RedirectToAction("BranchLogin", "Auth"); // Перенаправляем на вход филиала
+            }
+
+            int branchId = BitConverter.ToInt32(branchIdBytes, 0);
+            var reports = await _reportService.GetReportsByBranchAsync(branchId);
             return View(reports);
         }
 
@@ -57,28 +69,56 @@ namespace Stat_reports.Controllers
             return report == null ? NotFound() : View(report);
         }
 
-        public async Task<IActionResult> Preview(int id)
+        public async Task<IActionResult> PreviewExcel(int id)
         {
             var report = await _reportService.GetReportByIdAsync(id);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
                 return NotFound("Файл отчета не найден");
 
-            var fileBytes = await _reportService.DownloadReportAsync(id);
-            if (fileBytes == null)
-                return NotFound("Не удалось загрузить файл");
-
-            var model = new ReportPreviewViewModel
+            var excelData = await _reportService.ReadExcelFileAsync(id);
+            var model = new ExcelPreviewViewModel
             {
                 ReportId = id,
                 ReportName = report.Name,
-                FileContent = fileBytes
+                ExcelData = excelData,
+                Comment = report.Comment, // Load existing comment
+                Status = report.Status // Load existing status
             };
 
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddComment(int reportId, string comment)
+        {
+            await _reportService.AddReportCommentAsync(reportId, comment);
+            await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
+            return RedirectToAction(nameof(PreviewExcel), new { id = reportId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AcceptReport(int reportId)
+        {
+            await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.Reviewed);
+            var report = await _reportService.GetReportByIdAsync(reportId);
+            if (report != null)
+            {
+                await _deadlineService.CheckAndUpdateDeadlineAsync((int)report.TemplateId);
+            }
+            return RedirectToAction(nameof(PreviewExcel), new { id = reportId });
+        }
+
         public async Task<IActionResult> WorkingReports()
         {
-            var templates = await _reportService.GetPendingTemplatesAsync();
+            int? branchId = HttpContext.Session.GetInt32("BranchId");
+            Console.WriteLine(branchId);
+            if (branchId == null)
+            {
+                return Unauthorized(); // Если филиал не найден, блокируем доступ
+            }
+
+            var templates = await _reportService.GetPendingTemplatesAsync(branchId.Value);
+            Console.WriteLine(branchId+ "   "+templates);
             var viewModel = templates.Select(t => new PendingTemplateViewModel
             {
                 TemplateId = t.TemplateId,
@@ -107,5 +147,7 @@ namespace Stat_reports.Controllers
             await _reportService.DeleteReportAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+
     }
 }

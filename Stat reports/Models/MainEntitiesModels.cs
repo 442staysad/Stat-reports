@@ -20,6 +20,7 @@ namespace Stat_reports.Models
         public string? Email { get; set; }
         public string? Supervisor { get; set; }
         public string? ChiefAccountant { get; set; }
+        public string PasswordHash { get; set; }
     }
 
     public class ReportModel
@@ -71,6 +72,5 @@ namespace Stat_reports.Models
         public string? Role { get; set; }
         public int? BranchId { get; set; } // Для пользователей филиалов
 
-        public Branch Branch { get; set; }
     }
 }

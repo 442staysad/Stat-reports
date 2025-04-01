@@ -2,6 +2,7 @@
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stat_reports.Models;
 
 namespace Stat_reports.Areas.Admin.Controllers
 {
@@ -24,14 +25,28 @@ namespace Stat_reports.Areas.Admin.Controllers
         public IActionResult Create() => View();
 
         [HttpPost]
-        public async Task<IActionResult> Create(Branch branch)
+        public async Task<IActionResult> Create(BranchModel branchmodel)
         {
-            if (ModelState.IsValid)
-            {
+
+                Branch branch = new Branch
+                {
+                    Name = branchmodel.Name,
+                    Address = branchmodel.Address,
+                    HeadName = branchmodel.HeadName,
+                    ChiefAccountant = branchmodel.ChiefAccountant,
+                    Email = branchmodel.Email,
+                    GoverningName = branchmodel.GoverningName,
+                    OKPO = branchmodel.OKPO,
+                    OKYLP = branchmodel.OKYLP,
+                    Region = branchmodel.Region,
+                    Shortname = branchmodel.Shortname,
+                    Supervisor = branchmodel.Supervisor,
+                    UNP = branchmodel.UNP,
+                    PasswordHash = branchmodel.PasswordHash
+                };
                 await _branchService.CreateBranchAsync(branch);
                 return RedirectToAction(nameof(Index));
-            }
-            return View(branch);
+
         }
 
         public async Task<IActionResult> Edit(int id)

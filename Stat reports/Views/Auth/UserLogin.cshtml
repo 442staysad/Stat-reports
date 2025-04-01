@@ -1,5 +1,7 @@
 ﻿@model Stat_reports.Models.UserLoginModel
-
+@{
+    Layout = null;
+}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -15,7 +17,7 @@
             <form asp-action="UserLogin" method="post">
                 <div class="mb-3">
                     <label for="userId" class="form-label">Имя пользователя</label>
-                    <input asp-for="Username" />
+                    <input asp-for="Username" class="form-control" id="Username" name="Username" required placeholder="Введите логин" />
                     <span asp-validation-for="Username"></span>
                     <span asp-validation-for="Username" class="text-danger"></span>
                 </div>

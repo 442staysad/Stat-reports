@@ -1,37 +1,84 @@
-﻿@model Stat_reports.ViewModels.ReportPreviewViewModel
+﻿@model Stat_reports.ViewModels.ExcelPreviewViewModel
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 @{
-    ViewData["Title"] = "Предпросмотр отчета";
+    bool isAdminOrHeadOffice = User.IsInRole("Admin") || User.IsInRole("HeadOffice");
+    int? branchId = HttpContextAccessor.HttpContext?.Session?.GetInt32("BranchId");
 }
 
-<h2>@Model.ReportName</h2>
+<h2>Просмотр Excel файла: @Model.ReportName</h2>
 
-<table class="table table-bordered">
-    <tbody id="excelContent">
-        <tr>
-            <td>Загрузка данных...</td>
-        </tr>
-    </tbody>
-</table>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        fetch('@Url.Action("ParseExcel", "Report")?id=@Model.ReportId')
-            .then(response => response.json())
-            .then(data => {
-                let table = document.getElementById("excelContent");
-                table.innerHTML = "";
-
-                data.forEach(row => {
-                    let tr = document.createElement("tr");
-                    row.forEach(cell => {
-                        let td = document.createElement("td");
-                        td.innerText = cell;
-                        tr.appendChild(td);
-                    });
-                    table.appendChild(tr);
-                });
-            })
-            .catch(error => console.error("Ошибка загрузки данных:", error));
-    });
-</script>
+@if (isAdminOrHeadOffice)
+{
+    <ul class="nav nav-tabs" id="branchTabs" role="tablist">
+        @foreach (var branch in Model.ExcelData.Keys.Distinct())
+        {
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(branch == Model.ExcelData.Keys.First() ? "active" : "")" id="tab-@branch" data-bs-toggle="tab" data-bs-target="#branch-@branch" type="button" role="tab" aria-controls="branch-@branch" aria-selected="@(branch == Model.ExcelData.Keys.First())">
+                    Branch @branch
+                </button>
+            </li>
+        }
+    </ul>
+    <div class="tab-content" id="branchTabsContent">
+        @foreach (var branch in Model.ExcelData.Keys.Distinct())
+        {
+            <div class="tab-pane fade @(branch == Model.ExcelData.Keys.First() ? "show active" : "")" id="branch-@branch" role="tabpanel" aria-labelledby="tab-@branch">
+                @foreach (var sheet in Model.ExcelData[branch])
+                {
+                    <h3>Лист: @sheet.Key</h3>
+                    <table class="table">
+                        @foreach (var row in sheet.Value)
+                        {
+                            <tr>
+                                @foreach (var cell in row)
+                                {
+                                    <td>@cell</td>
+                                }
+                            </tr>
+                        }
+                    </table>
+                }
+                <h3>Добавить комментарий</h3>
+                <form asp-action="AddComment" method="post">
+                    <input type="hidden" name="reportId" value="@Model.ReportId" />
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Комментарий</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3">@Model.Comment</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Сохранить комментарий</button>
+                </form>
+                <h3>Изменить статус отчета</h3>
+                <form asp-action="AcceptReport" method="post">
+                    <input type="hidden" name="reportId" value="@Model.ReportId" />
+                    <button type="submit" class="btn btn-success">Принять отчет</button>
+                </form>
+            </div>
+        }
+    </div>
+}
+else
+{
+    @if (branchId.HasValue && Model.ExcelData.ContainsKey(branchId.ToString()))
+    {
+        @foreach (var sheet in Model.ExcelData[branchId.ToString()])
+        {
+            <h3>Лист: @sheet.Key</h3>
+            <table class="table">
+                @foreach (var row in sheet.Value)
+                {
+                    <tr>
+                        @foreach (var cell in row)
+                        {
+                            <td>@cell</td>
+                        }
+                    </tr>
+                }
+            </table>
+        }
+    }
+    else
+    {
+        <p>Нет данных для отображения.</p>
+    }
+}

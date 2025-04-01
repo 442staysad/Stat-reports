@@ -27,7 +27,8 @@ namespace Stat_reports.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var branch = await _authService.AuthenticateBranchAsync(model.UNP, model.Password);
+            var branch = await _authService.
+                AuthenticateBranchAsync(model.UNP, model.Password);
             if (branch == null)
             {
                 ModelState.AddModelError("", "Неверные УНП или пароль.");

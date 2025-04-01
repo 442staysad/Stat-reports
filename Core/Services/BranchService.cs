@@ -5,16 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Core.Entities;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Core.Services
 {
     public class BranchService : IBranchService
     {
         private readonly IRepository<Branch> _branchRepository;
+        private readonly IPasswordHasher<Branch> _branchpasswordHasher;
 
-        public BranchService(IRepository<Branch> branchRepository)
+        public BranchService(IRepository<Branch> branchRepository, 
+            IPasswordHasher<Branch> bramchpasswordhasher)
         {
             _branchRepository = branchRepository;
+            _branchpasswordHasher = bramchpasswordhasher;
         }
 
         public async Task<IEnumerable<Branch>> GetAllBranchesAsync()
@@ -29,6 +33,7 @@ namespace Core.Services
 
         public async Task<Branch> CreateBranchAsync(Branch branch)
         {
+            branch.PasswordHash=_branchpasswordHasher.HashPassword(null, branch.PasswordHash);
             await _branchRepository.AddAsync(branch);
             return branch;
         }

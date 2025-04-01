@@ -12,7 +12,6 @@ using Stat_reports.Filters;
 using Stat_reportsnt.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Подключение к БД (замени строку подключения на свою)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -32,9 +31,14 @@ builder.Services.AddScoped<IDeadlineService, DeadlineService>();
 //ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
 builder.Services.AddSingleton<AdminAuthFilter>();
 builder.Services.AddSingleton<AuthorizeBranchAndUserAttribute>();
-
-
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 // Настройка MVC
 builder.Services.AddScoped<IFileService,FileService>();
 builder.Services.AddControllersWithViews();
@@ -53,6 +57,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseSession();
 app.UseRouting();
 app.UseAuthorization();
 app.UseEndpoints(endpoints =>

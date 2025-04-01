@@ -9,6 +9,7 @@ using Core.Enums;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace Core.Services
 {
@@ -44,6 +45,10 @@ namespace Core.Services
         {
             var reports = await _reportRepository.GetAllAsync();
             return reports;
+        }
+        public async Task<IEnumerable<Report>> GetReportsByBranchAsync(int branchId)
+        {
+            return await _reportRepository.FindAllAsync(r => r.BranchId == branchId);
         }
 
         public async Task<ReportDto> GetReportByIdAsync(int id)
@@ -184,11 +189,13 @@ namespace Core.Services
             return await _fileService.GetFileAsync(report.FilePath);
         }
 
-        public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync()
+        public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync(int? branchId)
         {
             var today = DateTime.UtcNow;
+
             var templates = await _deadlineRepository
-                .GetAll(q => q.Include(t => t.Template)) // Обязательно загружаем Template
+                .GetAll(q => q.Include(t => t.Template))
+                .Where(d => d.BranchId == branchId) // Фильтрация по филиалу
                 .ToListAsync();
 
             var pendingTemplates = new List<PendingTemplateDto>();
@@ -207,9 +214,7 @@ namespace Core.Services
                 }
 
                 var existingReport = await _reportRepository.FindAsync(r =>
-                    r.TemplateId == template.ReportTemplateId &&
-                    r.UploadDate.Year == today.Year &&
-                    r.UploadDate.Month == today.Month);
+                    r.BranchId == branchId); // Фильтрация по филиалу
 
                 pendingTemplates.Add(new PendingTemplateDto
                 {
@@ -223,6 +228,43 @@ namespace Core.Services
 
             return pendingTemplates;
         }
+
+        public async Task<Dictionary<string, Dictionary<string, List<List<string>>>>> ReadExcelFileAsync(int reportId)
+        {
+            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            if (report == null || string.IsNullOrEmpty(report.FilePath))
+                throw new FileNotFoundException("Report file not found");
+
+            var fileBytes = await _fileService.GetFileAsync(report.FilePath);
+            using var stream = new MemoryStream(fileBytes);
+            using var package = new ExcelPackage(stream);
+
+            // Предположим, что филиал берется из самого отчета
+            string branchKey = report.BranchId.ToString();
+
+            var result = new Dictionary<string, Dictionary<string, List<List<string>>>>();
+
+            if (!result.ContainsKey(branchKey))
+                result[branchKey] = new Dictionary<string, List<List<string>>>();
+
+            foreach (var worksheet in package.Workbook.Worksheets)
+            {
+                var sheetData = new List<List<string>>();
+                for (int row = 1; row <= worksheet.Dimension.Rows; row++)
+                {
+                    var rowData = new List<string>();
+                    for (int col = 1; col <= worksheet.Dimension.Columns; col++)
+                    {
+                        rowData.Add(worksheet.Cells[row, col].Text);
+                    }
+                    sheetData.Add(rowData);
+                }
+                result[branchKey][worksheet.Name] = sheetData;
+            }
+
+            return result;
+        }
+
 
         private ReportDto MapToDto(Report report)
         {

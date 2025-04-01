@@ -8,6 +8,8 @@ namespace Core.Entities
 {
     public class SubmissionDeadline : BaseEntity
     {
+        public int? BranchId { get; set; }
+        public Branch? Branch { get; set; }
         public int ReportTemplateId { get; set; }
         public ReportTemplate Template { get; set; }
         public DeadlineType DeadlineType { get; set; }

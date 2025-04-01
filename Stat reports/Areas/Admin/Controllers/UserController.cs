@@ -40,10 +40,10 @@ namespace Stat_reports.Areas.Admin.Controllers
                 FullName = userm.FullName,
                 Role = userm.Role,
                 BranchId = userm.BranchId,
-                Branch = userm.Branch,
                 Email = userm.Email,
                 Number = userm.Number,
-                Position = userm.Position
+                Position = userm.Position,
+                PasswordHash=userm.PasswordHash
             };
             if (ModelState.IsValid)
             {

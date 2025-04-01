@@ -25,17 +25,17 @@
 
     <div class="form-group">
         <label asp-for="UNP" class="control-label">УНП</label>
-        <input asp-for="UNP" class="form-control" />
+        <input asp-for="UNP" name="UNP" class="form-control" />
         <span asp-validation-for="UNP" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="OKPO" class="control-label">ОКПО</label>
-        <input asp-for="OKPO" class="form-control" />
+        <input asp-for="OKPO" name="OKPO" class="form-control" />
         <span asp-validation-for="OKPO" class="text-danger"></span>
     </div>
         <div class="form-group">
         <label asp-for="OKYLP" class="control-label">ОКИЛП</label>
-        <input asp-for="OKYLP" class="form-control" />
+        <input asp-for="OKYLP" name="OKYLP" class="form-control" />
         <span asp-validation-for="OKYLP" class="text-danger"></span>
     </div>
 
@@ -63,9 +63,13 @@
     </div>
     <div class="form-group">
         <label asp-for="ChiefAccountant" class="control-label">Главный бухгалтер</label>
-        <input asp-for="ChiefAccountant" class="form-control" />
+        <input asp-for="ChiefAccountant" name="ChiefAccountant" class="form-control" />
         <span asp-validation-for="ChiefAccountant" class="text-danger"></span>
     </div>
-
+    <div class="form-group">
+        <label asp-for="PasswordHash" class="control-label">Пароль</label>
+        <input asp-for="PasswordHash" name="PasswordHash" class="form-control" />
+        <span asp-validation-for="PasswordHash" class="text-danger"></span>
+    </div>
     <button type="submit" class="btn btn-primary">Создать</button>
 </form>
