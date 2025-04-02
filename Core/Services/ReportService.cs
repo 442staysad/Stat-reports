@@ -242,10 +242,14 @@ namespace Core.Services
 
             var fileBytes = await _fileService.GetFileAsync(report.FilePath);
             using var stream = new MemoryStream(fileBytes);
+
+            // Установка контекста лицензии
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             using var package = new ExcelPackage(stream);
 
             // Предположим, что филиал берется из самого отчета
-            string branchKey = report.BranchId.ToString();
+            string branchKey = report.BranchId?.ToString() ?? throw new InvalidOperationException("BranchId is null");
 
             var result = new Dictionary<string, Dictionary<string, List<List<string>>>>();
 
@@ -269,7 +273,6 @@ namespace Core.Services
 
             return result;
         }
-        // Другие методы...
 
         public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)
         {

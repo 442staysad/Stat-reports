@@ -2,7 +2,7 @@
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 @{
-    bool isAdminOrHeadOffice = User.IsInRole("Admin") || User.IsInRole("HeadOffice");
+    bool isAdminOrHeadOffice = true;
     int? branchId = HttpContextAccessor.HttpContext?.Session?.GetInt32("BranchId");
 }
 
