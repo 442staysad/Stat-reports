@@ -18,6 +18,6 @@ namespace Core.Entities
         public string? Comment { get; set; }
         public bool IsClosed { get; set; } // Новый флаг
         public int? ReportStatusId { get; set; } = 4;
-        public ReportStatus? Status { get; set; }
+        public ReportStatus? Status { get; set; } = ReportStatus.InProgress;
     }
 }

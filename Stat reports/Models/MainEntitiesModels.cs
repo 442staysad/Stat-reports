@@ -20,6 +20,7 @@ namespace Stat_reports.Models
         public string? Email { get; set; }
         public string? Supervisor { get; set; }
         public string? ChiefAccountant { get; set; }
+        [Required]
         public string PasswordHash { get; set; }
     }
 
@@ -34,8 +35,6 @@ namespace Stat_reports.Models
         public User UploadedBy { get; set; }
 
         public int? BranchId { get; set; }
-        public Branch? Branch { get; set; }
-        public ReportStatus? Status { get; set; }
         public string? FilePath { get; set; } // Путь к файлу
 
         public ICollection<ReportAccess> Accesses { get; set; } = new List<ReportAccess>();

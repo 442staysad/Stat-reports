@@ -126,7 +126,8 @@ namespace Core.Services
             var templateName = await _templateRepository.FindAsync(t => t.Id == templateId);
             // Проверяем срок сдачи
             var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
-
+            deadline.Status = ReportStatus.Draft;
+            await _deadlineRepository.UpdateAsync(deadline);
             // Сохраняем файл
             var filePath = await _fileService.SaveFileAsync(file, "Reports",branchname.Name,DateTime.Now.Year,templateName.Name);
 
@@ -139,6 +140,8 @@ namespace Core.Services
                 FilePath = filePath,
                 
                 UploadDate = DateTime.UtcNow,
+                Branch=branchname,
+                Template = templateName
             };
 
             var createdReport = await _reportRepository.AddAsync(report);
@@ -222,7 +225,9 @@ namespace Core.Services
                     TemplateId = template.ReportTemplateId,
                     TemplateName = template.Template?.Name ?? "Неизвестный шаблон",
                     Deadline = template.DeadlineDate,
-                    ReportId = existingReport?.Id
+                    ReportId = existingReport?.Id,
+                    Status = template.Status.ToString(),
+                    
                 });
             }
 

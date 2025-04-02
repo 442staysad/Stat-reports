@@ -42,9 +42,9 @@
                                     <td>@item.TemplateName</td>
                                     <td>@item.Deadline.ToString("dd.MM.yyyy")</td>
                                     <td>
-                                        @if (item.Status == "Draft")
+                                        @if (item.Status == "InProgress")
                                         {
-                                            <span class="badge bg-warning">Черновик</span>
+                                            <span class="badge bg-secondary">В работе</span>
                                         }
                                         else if (item.Status == "NeedsCorrection")
                                         {
@@ -56,12 +56,12 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">В работе</span>
+                                            <span class="badge bg-warning">Черновик</span>
                                         }
                                     </td>
                                     <td>@item.Comment</td>
                                     <td class="text-center">
-                                        @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
+                                        @if (item.Status == "InProgress" || item.Status == "NeedsCorrection")
                                         {
                                             <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data">
                                                 <input type="hidden" name="templateId" value="@item.TemplateId" />
@@ -113,9 +113,9 @@
                         <td>@item.TemplateName</td>
                         <td>@item.Deadline.ToString("dd.MM.yyyy")</td>
                         <td>
-                            @if (item.Status == "Draft")
+                            @if (item.Status == "InProgress")
                             {
-                                <span class="badge bg-warning">Черновик</span>
+                                <span class="badge bg-secondary">В работе</span>
                             }
                             else if (item.Status == "NeedsCorrection")
                             {
@@ -127,7 +127,7 @@
                             }
                             else
                             {
-                                <span class="badge bg-secondary">В работе</span>
+                                <span class="badge bg-warning">Черновик</span>
                             }
                         </td>
                         <td>@item.Comment</td>

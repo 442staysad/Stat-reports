@@ -154,6 +154,14 @@ namespace Stat_reports.Controllers
             await _reportService.DeleteReportAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet("download/{reportId}")]
+        public async Task<IActionResult> DownloadReport(int reportId, string reportname)
+        {
+            var fileBytes = await _reportService.GetReportFileAsync(reportId);
+            return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}");
+        }
+
         public async Task<IActionResult> ReportArchive(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)
         {
             var reports = await _reportService.GetFilteredReportsAsync(name, templateId, branchId, startDate, endDate);
