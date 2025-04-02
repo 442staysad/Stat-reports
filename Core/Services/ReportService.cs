@@ -71,7 +71,7 @@ namespace Core.Services
 
             existingReport.Name = reportDto.Name;
             existingReport.UploadDate = reportDto.SubmissionDate;
-            existingReport.Status = (ReportStatus)reportDto.Status;
+
             existingReport.FilePath = reportDto.FilePath;
 
             var updatedReport = await _reportRepository.UpdateAsync(existingReport);
@@ -120,15 +120,15 @@ namespace Core.Services
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
-            string? branchname = (await _branchRepository.FindAsync(b => b.Id == branchId)).Name;
+            var branchname = await _branchRepository.FindAsync(b => b.Id == branchId);
            
 
-            string? templateName = (await _templateRepository.FindAsync(t => t.Id == templateId)).Name;
+            var templateName = await _templateRepository.FindAsync(t => t.Id == templateId);
             // Проверяем срок сдачи
             var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
 
             // Сохраняем файл
-            var filePath = await _fileService.SaveFileAsync(file, $"Reports/{branchname}/{DateTime.Now.Year}/{templateName}/");
+            var filePath = await _fileService.SaveFileAsync(file, "Reports",branchname.Name,DateTime.Now.Year,templateName.Name);
 
             var report = new Report
             {
@@ -147,9 +147,10 @@ namespace Core.Services
 
         /// <summary>
         /// Изменение статуса отчета (например, после проверки).
-        /// </summary>
+        /// </summary> 
+        
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
-        {
+        {/*
             var report = await _reportRepository.FindAsync(r=>r.Id==reportId);
             if (report == null) return false;
 
@@ -163,7 +164,7 @@ namespace Core.Services
             {
                 await _deadlineService.CheckAndUpdateDeadlineAsync(report.TemplateId);
             }
-
+            */
             return true;
         }
 
@@ -180,11 +181,11 @@ namespace Core.Services
             return true;
         }
 
-        public async Task<byte[]> DownloadReportAsync(int reportId)
+        public async Task<byte[]> GetReportFileAsync(int reportId)
         {
             var report = await _reportRepository.FindAsync(r => r.Id == reportId);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
-                return null;
+                throw new FileNotFoundException("Файл отчета не найден");
 
             return await _fileService.GetFileAsync(report.FilePath);
         }
@@ -221,7 +222,6 @@ namespace Core.Services
                     TemplateId = template.ReportTemplateId,
                     TemplateName = template.Template?.Name ?? "Неизвестный шаблон",
                     Deadline = template.DeadlineDate,
-                    Status = existingReport?.Status.ToString() ?? "Draft",
                     ReportId = existingReport?.Id
                 });
             }
@@ -264,7 +264,50 @@ namespace Core.Services
 
             return result;
         }
+        // Другие методы...
 
+        public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)
+        {
+            var query = _reportRepository.GetAll();
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(r => r.Name.Contains(name));
+            }
+
+            if (templateId.HasValue)
+            {
+                query = query.Where(r => r.TemplateId == templateId.Value);
+            }
+
+            if (branchId.HasValue)
+            {
+                query = query.Where(r => r.BranchId == branchId.Value);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(r => r.UploadDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(r => r.UploadDate <= endDate.Value);
+            }
+
+            var reports = await query.ToListAsync();
+            return reports.Select(r => new ReportDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                SubmissionDate = r.UploadDate,
+                UploadedById = r.UploadedById ?? 0,
+                BranchId = r.BranchId,
+                TemplateId = r.TemplateId,
+                FilePath = r.FilePath,
+                Comment = r.Comment
+            }).ToList();
+        }
 
         private ReportDto MapToDto(Report report)
         {
@@ -273,7 +316,6 @@ namespace Core.Services
                 Id = report.Id,
                 Name = report.Name,
                 SubmissionDate = report.UploadDate,
-                Status = report.Status ?? 0,
                 FilePath = report.FilePath,
                 UploadedById = report.UploadedById ?? 0, // Fix for nullable type
                 BranchId = report.BranchId,
@@ -289,7 +331,6 @@ namespace Core.Services
                 Id = reportDto.Id,
                 Name = reportDto.Name,
                 UploadDate = reportDto.SubmissionDate,
-                Status = (ReportStatus)reportDto.Status,
                 FilePath = reportDto.FilePath,
                 UploadedById = reportDto.UploadedById,
                 BranchId = reportDto.BranchId ?? 0,

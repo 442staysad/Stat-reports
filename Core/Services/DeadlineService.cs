@@ -37,8 +37,8 @@ namespace Core.Services
                 if (deadline == null) return;
 
                 // Проверяем, есть ли принятые отчеты
-                var isAccepted = await _reportRepository
-                    .AnyAsync(r => r.TemplateId == templateId && r.Status == ReportStatus.Reviewed);
+                var isAccepted = await _deadlineRepository
+                    .AnyAsync(r => r.ReportTemplateId == templateId && r.Status == ReportStatus.Reviewed);
 
                 if (isAccepted)
                 {

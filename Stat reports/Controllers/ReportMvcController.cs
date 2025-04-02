@@ -14,11 +14,18 @@ namespace Stat_reports.Controllers
     {
         private readonly IReportService _reportService;
         private readonly IDeadlineService _deadlineService;
+        private readonly IBranchService _branchService;
+        private readonly IReportTemplateService _reportTemplateService;
 
-        public ReportMvcController(IReportService reportService, IDeadlineService deadlineService)
+        public ReportMvcController(IReportService reportService, 
+            IDeadlineService deadlineService,
+            IBranchService branchService,
+            IReportTemplateService reportTemplateService)
         {
             _reportService = reportService;
             _deadlineService = deadlineService;
+            _branchService = branchService;
+            _reportTemplateService = reportTemplateService;
         }
 
         public async Task<IActionResult> Index()
@@ -111,14 +118,14 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> WorkingReports()
         {
             int? branchId = HttpContext.Session.GetInt32("BranchId");
-            Console.WriteLine(branchId);
+
             if (branchId == null)
             {
                 return Unauthorized(); // Если филиал не найден, блокируем доступ
             }
 
             var templates = await _reportService.GetPendingTemplatesAsync(branchId.Value);
-            Console.WriteLine(branchId+ "   "+templates);
+
             var viewModel = templates.Select(t => new PendingTemplateViewModel
             {
                 TemplateId = t.TemplateId,
@@ -147,7 +154,29 @@ namespace Stat_reports.Controllers
             await _reportService.DeleteReportAsync(id);
             return RedirectToAction(nameof(Index));
         }
+        public async Task<IActionResult> ReportArchive(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)
+        {
+            var reports = await _reportService.GetFilteredReportsAsync(name, templateId, branchId, startDate, endDate);
+            var branches = await _branchService.GetAllBranchesAsync();
+            var templates = await _reportTemplateService.GetAllReportTemplatesAsync();
 
+            var model = new ReportArchiveViewModel
+            {
+                Reports = reports,
+                Branches = branches,
+                Templates = templates,
+                Filter = new ReportFilterViewModel
+                {
+                    Name = name,
+                    TemplateId = templateId,
+                    BranchId = branchId,
+                    StartDate = startDate,
+                    EndDate = endDate
+                }
+            };
+
+            return View(model);
+        }
 
     }
 }

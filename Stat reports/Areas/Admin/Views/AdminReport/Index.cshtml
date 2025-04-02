@@ -26,7 +26,7 @@
                     <td>@report.Name</td>
                     <td>@report.Template.Name</td>
                     <td>@report.UploadDate.ToShortDateString()</td>
-                    <td>@report.Status</td>
+                    <td></td>
                     <td>
                         <a href="@Url.Action("Edit", "AdminReport", new { id = report.Id })" class="btn btn-warning">Редактировать</a>
                         <a href="@Url.Action("Delete", "AdminReport", new { id = report.Id })" class="btn btn-danger">Удалить</a>

@@ -23,6 +23,7 @@ namespace Infrastructure.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
 
+            Console.WriteLine($"baseFolder: {baseFolder}, branchName: {branchName}, year: {year}, templateName: {templateName}");
             try
             {
                 string folderPath;

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Stat_reports.Areas.Admin.Controllers
 {
+
     [Area("Admin")]
     public class AdminController : Controller
     {

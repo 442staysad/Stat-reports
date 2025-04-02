@@ -15,8 +15,6 @@ namespace Core.Entities
         public int? BranchId { get; set; }
         public Branch? Branch { get; set; }
 
-        public int? ReportStatusId { get; set; } = 4;
-        public ReportStatus? Status { get; set; }
         public string FilePath { get; set; }//название отчета
 
         public ICollection<ReportAccess>? Accesses { get; set; }
