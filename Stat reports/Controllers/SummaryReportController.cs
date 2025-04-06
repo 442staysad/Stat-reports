@@ -1,55 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Core.DTO;
-using Core.Interfaces;
+﻿using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Stat_reportsnt.Filters;
 
-namespace Stat_reports.Controllers
+[AuthorizeBranchAndUser]
+public class SummaryReportController : Controller
 {
-    [Route("api/summary-reports")]
-    [ApiController]
-    public class SummaryReportController : ControllerBase
+    private readonly ISummaryReportService _summaryReportService;
+    private readonly IReportTemplateService _reportTemplateService;
+    private readonly IBranchService _branchService;
+
+    public SummaryReportController(ISummaryReportService summaryReportService,
+        IReportTemplateService reportTemplateService,
+        IBranchService branchService)
     {
-        private readonly ISummaryReportService _summaryReportService;
+        _summaryReportService = summaryReportService;
+        _reportTemplateService = reportTemplateService;
+        _branchService = branchService;
+    }
 
-        public SummaryReportController(ISummaryReportService summaryReportService)
+    [HttpGet]
+    public async Task<IActionResult> Summary()
+    {
+        var model = new SummaryReportGenerationViewModel
         {
-            _summaryReportService = summaryReportService;
-        }
+            Templates = (List<Core.Entities.ReportTemplate>)await _reportTemplateService.GetAllReportTemplatesAsync(),
+            Branches = (List<Core.Entities.Branch>)await _branchService.GetAllBranchesAsync()
+        };
 
-        // Получить все сводные отчеты
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SummaryReportDto>>> GetAll()
-        {
-            var reports = await _summaryReportService.GetAllSummaryReportsAsync();
-            return Ok(reports);
-        }
+        return View(model);
+    }
 
-        // Получить сводный отчет по ID
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SummaryReportDto>> GetById(int id)
-        {
-            var report = await _summaryReportService.GetSummaryReportByIdAsync(id);
-            if (report == null) return NotFound();
-            return Ok(report);
-        }
+    [HttpPost]
+    public async Task<IActionResult> Summary(SummaryReportGenerationViewModel model)
+    {
+        model.Templates = (List<Core.Entities.ReportTemplate>)await _reportTemplateService.GetAllReportTemplatesAsync();
+        model.Branches = (List<Core.Entities.Branch>)await _branchService.GetAllBranchesAsync();
 
-        // Создать сводный отчет
-        [HttpPost]
-        public async Task<ActionResult<SummaryReportDto>> Create(SummaryReportDto reportDto)
-        {
-            var createdReport = await _summaryReportService.CreateSummaryReportAsync(reportDto);
-            return CreatedAtAction(nameof(GetById), new { id = createdReport.Id }, createdReport);
-        }
+        if (!ModelState.IsValid || model.SelectedTemplateId == null || model.Year == null)
+            return View(model);
 
-        // Удалить сводный отчет
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var success = await _summaryReportService.DeleteSummaryReportAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
-        }
+        // Получаем нужные отчеты
+        var reports = await _summaryReportService.GetReportsForSummaryAsync(model.SelectedTemplateId.Value,
+            model.Year.Value, model.Month, model.Quarter, model.HalfYearPeriod, model.SelectedBranchIds);
+
+        var templatePath = await _summaryReportService.GetTemplateFilePathAsync(model.SelectedTemplateId.Value);
+
+        var mergedExcel = _summaryReportService.MergeReportsToExcel(reports, templatePath);
+
+        return File(mergedExcel, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "СводныйОтчет.xlsx");
     }
 }

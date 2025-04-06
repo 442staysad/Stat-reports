@@ -12,125 +12,63 @@ namespace Core.Services
 {
     public class SummaryReportService : ISummaryReportService
     {
-        private readonly IRepository<SummaryReport> _summaryReportRepository;
-        private readonly IRepository<Report> _reportRepository;
+        private readonly IRepository<Report> _reportRepo;
+        private readonly IRepository<ReportTemplate> _templateRepo;
+        private readonly IExcelSplitterService _excelSplitter;
 
-        public SummaryReportService(IRepository<SummaryReport> summaryReportRepository, IRepository<Report> reportRepository)
+        public SummaryReportService(IRepository<Report> reportRepo,
+                                    IRepository<ReportTemplate> templateRepo,
+                                    IExcelSplitterService excelSplitter)
         {
-            _summaryReportRepository = summaryReportRepository;
-            _reportRepository = reportRepository;
+            _reportRepo = reportRepo;
+            _templateRepo = templateRepo;
+            _excelSplitter = excelSplitter;
         }
 
-        public async Task<IEnumerable<SummaryReportDto>> GetAllSummaryReportsAsync()
+        public async Task<List<Report>> GetReportsForSummaryAsync(int templateId, int year, int? month, int? quarter, int? halfYear, List<int> branchIds)
         {
-            var reports = await _summaryReportRepository.GetAllAsync();
-            return reports.Select(MapToDto);
-        }
+            var reports = await _reportRepo.FindAllAsync(r =>
+                r.TemplateId == templateId &&
+                r.UploadDate.Year == year &&
+                branchIds.Contains((int)r.BranchId));
 
-        public async Task<IEnumerable<SummaryReportDto>> GetSummaryReportsByPeriodAsync(DateTime periodStart, DateTime periodEnd)
-        {
-            var reports = await _summaryReportRepository.GetAllAsync();
-            return reports.Select(MapToDto);
-        }
-
-        public async Task<SummaryReportDto> GetSummaryReportByIdAsync(int id)
-        {
-            var report = await _summaryReportRepository.FindAsync(r => r.Id == id);
-            return report == null ? null : MapToDto(report);
-        }
-
-        public async Task<SummaryReportDto> CreateSummaryReportAsync(SummaryReportDto summaryReportDto)
-        {
-            var summaryReport = MapToEntity(summaryReportDto);
-            var createdReport = await _summaryReportRepository.AddAsync(summaryReport);
-            return MapToDto(createdReport);
-        }
-        public async Task<bool> DeleteSummaryReportAsync(int id)
-        {
-            var report = await _summaryReportRepository.FindAsync(r => r.Id == id);
-            if (report == null) return false;
-
-            await _summaryReportRepository.DeleteAsync(report);
-            return true;
-        }
-
-        public async Task<SummaryReportDto> GenerateSummaryReportAsync(List<int> reportIds)
-        {
-            var reports = await _reportRepository
-                .GetAll()
-                .Where(r => reportIds.Contains(r.Id))
-                .ToListAsync();
-
-            // Инициализируем итоговые данные
-            var summaryData = new Dictionary<string, Dictionary<string, decimal>>();
-
-            foreach (var report in reports)
+            if (month != null)
+                reports = reports.Where(r => r.Period.Month == month).ToList();
+            else if (quarter != null)
             {
-                var reportData = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(report.Comment);
-
-                foreach (var sheet in reportData)
-                {
-                    // Обрабатываем каждый лист (например, "Лист1")
-                    foreach (var row in sheet.Value)
-                    {
-                        var rowKey = row["Показатель"].ToString();
-                        foreach (var key in row.Keys.Where(k => k != "Показатель"))
-                        {
-                            if (!summaryData.ContainsKey(rowKey))
-                            {
-                                summaryData[rowKey] = new Dictionary<string, decimal>();
-                            }
-
-                            if (!summaryData[rowKey].ContainsKey(key))
-                            {
-                                summaryData[rowKey][key] = 0;
-                            }
-
-                            // Суммируем данные по каждому ключу
-                            if (decimal.TryParse(row[key]?.ToString(), out var value))
-                            {
-                                summaryData[rowKey][key] += value;
-                            }
-                        }
-                    }
-                }
+                var months = GetQuarterMonths(quarter.Value);
+                reports = reports.Where(r => months.Contains(r.Period.Month)).ToList();
+            }
+            else if (halfYear != null)
+            {
+                var months = halfYear == 1 ? new[] { 1, 2, 3, 4, 5, 6 } : new[] { 7, 8, 9, 10, 11, 12 };
+                reports = reports.Where(r => months.Contains(r.Period.Month)).ToList();
             }
 
-            // Формируем DTO для сводного отчета
-            var summaryReport = new SummaryReportDto
-            {
-              /*  GeneratedDate = DateTime.UtcNow,
-                Data = summaryData*/
-            };
-
-            return summaryReport;
+            return reports.ToList();
         }
 
-        private SummaryReportDto MapToDto(SummaryReport report)
+        public Task<string> GetTemplateFilePathAsync(int templateId)
         {
-            return new SummaryReportDto
-            {
-                Id = report.Id,
-                Name = report.Name,
-                FilePath = report.FilePath,
-                CreatedDate = report.CreatedDate,
-                ReportTemplateId = report.ReportTemplateId,
-                PeriodStart = report.PeriodStart,
-                PeriodEnd = report.PeriodEnd
-            };
+            // Пусть путь хранится в шаблоне
+            return _templateRepo.FindAsync(t => t.Id == templateId).ContinueWith(t => t.Result.FilePath);
         }
 
-        private SummaryReport MapToEntity(SummaryReportDto reportDto)
+        public byte[] MergeReportsToExcel(List<Report> reports, string templatePath)
         {
-            return new SummaryReport
+            var paths = reports.Select(r => r.FilePath).ToList();
+            return _excelSplitter.ProcessReports(paths, templatePath);
+        }
+
+        private List<int> GetQuarterMonths(int quarter)
+        {
+            return quarter switch
             {
-                Id = reportDto.Id,
-                Name = reportDto.Name,
-                FilePath = reportDto.FilePath,
-                CreatedDate = reportDto.CreatedDate,
-                ReportTemplateId = reportDto.ReportTemplateId,
-                PeriodStart = reportDto.PeriodStart,
-                PeriodEnd = reportDto.PeriodEnd
+                1 => new List<int> { 1, 2, 3 },
+                2 => new List<int> { 4, 5, 6 },
+                3 => new List<int> { 7, 8, 9 },
+                4 => new List<int> { 10, 11, 12 },
+                _ => throw new ArgumentException("Некорректный квартал")
             };
         }
     }

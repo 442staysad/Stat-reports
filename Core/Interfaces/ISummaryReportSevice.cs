@@ -1,4 +1,5 @@
 ﻿using Core.DTO;
+using Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,11 +8,9 @@ namespace Core.Interfaces
 {
     public interface ISummaryReportService
     {
-        Task<IEnumerable<SummaryReportDto>> GetAllSummaryReportsAsync();
-        Task<IEnumerable<SummaryReportDto>> GetSummaryReportsByPeriodAsync(DateTime periodStart, DateTime periodEnd);
-        Task<SummaryReportDto> GetSummaryReportByIdAsync(int id);
-        Task<SummaryReportDto> CreateSummaryReportAsync(SummaryReportDto summaryReportDto);
-        Task<bool> DeleteSummaryReportAsync(int id); // Новый метод
-        Task<SummaryReportDto> GenerateSummaryReportAsync(List<int> reportIds);
+        Task<List<Report>> GetReportsForSummaryAsync(int templateId, int year, int? month, int? quarter, int? halfYear, List<int> branchIds);
+        Task<string> GetTemplateFilePathAsync(int templateId);
+        byte[] MergeReportsToExcel(List<Report> reports, string templatePath);
+
     }
 }

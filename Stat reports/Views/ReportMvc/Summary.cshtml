@@ -1,32 +1,70 @@
-﻿<form id="mergeForm" enctype="multipart/form-data">
-    <label for="fileInput">Выберите файлы отчетов:</label>
-    <input type="file" id="fileInput" name="files" multiple required>
-    <button type="submit">Сформировать сводный отчет</button>
+﻿
+@model SummaryReportGenerationViewModel
+@{
+    ViewData["Title"] = "Генерация сводного отчета";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form method="post">
+    <div>
+        <label>Шаблон отчета:</label>
+        <select asp-for="SelectedTemplateId" asp-items="@(new SelectList(Model.Templates, "Id", "Name"))" class="form-control" onchange="this.form.submit()"></select>
+    </div>
+
+    @if (Model.PeriodType != null)
+    {
+        <div>
+            <label>Год:</label>
+            <input asp-for="Year" class="form-control" type="number" min="2000" max="2100" required />
+        </div>
+
+        @if (Model.PeriodType == PeriodType.Monthly)
+        {
+            <div>
+                <label>Месяц:</label>
+                <select asp-for="Month" class="form-control">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        <option value="@i">@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                    }
+                </select>
+            </div>
+        }
+        else if (Model.PeriodType == PeriodType.Quarterly)
+        {
+            <div>
+                <label>Квартал:</label>
+                <select asp-for="Quarter" class="form-control">
+                    <option value="1">I квартал</option>
+                    <option value="2">II квартал</option>
+                    <option value="3">III квартал</option>
+                    <option value="4">IV квартал</option>
+                </select>
+            </div>
+        }
+        else if (Model.PeriodType == PeriodType.HalfYearly)
+        {
+            <div>
+                <label>Полугодие:</label>
+                <select asp-for="HalfYearPeriod" class="form-control">
+                    <option value="1">I полугодие</option>
+                    <option value="2">II полугодие</option>
+                </select>
+            </div>
+        }
+    }
+
+    <div>
+        <label>Филиалы:</label>
+        @foreach (var branch in Model.Branches)
+        {
+            <div>
+                <input type="checkbox" name="SelectedBranchIds" value="@branch.Id" />
+                <label>@branch.Name</label>
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сгенерировать</button>
 </form>
-
-<script>
-    document.getElementById("mergeForm").addEventListener("submit", async function(event) {
-        event.preventDefault();
-
-        let formData = new FormData();
-        let files = document.getElementById("fileInput").files;
-        for (let i = 0; i < files.length; i++) {
-            formData.append("files", files[i]);
-        }
-
-        let response = await fetch("/api/reports/merge", {
-            method: "POST",
-            body: formData
-        });
-
-        if (response.ok) {
-            let blob = await response.blob();
-            let link = document.createElement("a");
-            link.href = window.URL.createObjectURL(blob);
-            link.download = "MergedReport.xlsx";
-            link.click();
-        } else {
-            alert("Ошибка при объединении отчетов");
-        }
-    });
-</script>

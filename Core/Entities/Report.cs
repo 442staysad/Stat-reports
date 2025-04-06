@@ -8,6 +8,7 @@ namespace Core.Entities
         public int TemplateId { get; set; }
         public ReportTemplate Template { get; set; }
         public DateTime UploadDate { get; set; }
+        public DateTime Period { get; set; }
 
         public int? UploadedById { get; set; }
         public User? UploadedBy { get; set; }
