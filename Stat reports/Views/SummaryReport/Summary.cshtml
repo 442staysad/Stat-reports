@@ -19,7 +19,7 @@
             <input asp-for="Year" class="form-control" type="number" min="2000" max="2100" required />
         </div>
 
-        @if (Model.PeriodType == PeriodType.Monthly)
+        @if (Model.PeriodType.ToString() == "Monthly")
         {
             <div>
                 <label>Месяц:</label>
@@ -31,7 +31,7 @@
                 </select>
             </div>
         }
-        else if (Model.PeriodType == PeriodType.Quarterly)
+        else if (Model.PeriodType.ToString() == "Quarterly")
         {
             <div>
                 <label>Квартал:</label>
@@ -43,7 +43,7 @@
                 </select>
             </div>
         }
-        else if (Model.PeriodType == PeriodType.HalfYearly)
+        else if (Model.PeriodType.ToString() == "HalfYearly")
         {
             <div>
                 <label>Полугодие:</label>

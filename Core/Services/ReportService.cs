@@ -153,21 +153,21 @@ namespace Core.Services
         /// </summary> 
         
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
-        {/*
-            var report = await _reportRepository.FindAsync(r=>r.Id==reportId);
-            if (report == null) return false;
+        {
+            var deadline = await _deadlineRepository.FindAsync(r=>r.Id==reportId);
+            if (deadline == null) return false;
 
-            report.Status = newStatus;
+            deadline.Status= newStatus;
             if (!string.IsNullOrEmpty(remarks))
-                report.Comment = remarks;
+                deadline.Comment = remarks;
 
-            _reportRepository.UpdateAsync(report);
+            _deadlineRepository.UpdateAsync(deadline);
 
             if (newStatus == ReportStatus.Reviewed)
             {
-                await _deadlineService.CheckAndUpdateDeadlineAsync(report.TemplateId);
+                await _deadlineService.CheckAndUpdateDeadlineAsync(deadline.ReportTemplateId);
             }
-            */
+            
             return true;
         }
 
@@ -181,6 +181,7 @@ namespace Core.Services
 
             report.Comment = comment;
             await _reportRepository.UpdateAsync(report);
+
             return true;
         }
 

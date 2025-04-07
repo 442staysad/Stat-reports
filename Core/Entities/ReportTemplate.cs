@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Enums;
 
 namespace Core.Entities
 {
@@ -10,7 +11,7 @@ namespace Core.Entities
     {
         public string Name { get; set; }
         public string? Description { get; set; }
-
+        public DeadlineType DeadlineType { get; set; }
         public string FilePath { get; set; }//ЭТО ФАЙЛ НАДО БУДЕТ ЗАГРУЖАТЬ  
         public ICollection<Report>? Reports { get; set; }
         public ICollection<SubmissionDeadline>? Deadlines { get; set; }

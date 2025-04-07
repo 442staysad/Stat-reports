@@ -1,5 +1,6 @@
 ﻿using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Stat_reports.ViewModels;
 using Stat_reportsnt.Filters;
 
 [AuthorizeBranchAndUser]
@@ -35,6 +36,15 @@ public class SummaryReportController : Controller
     {
         model.Templates = (List<Core.Entities.ReportTemplate>)await _reportTemplateService.GetAllReportTemplatesAsync();
         model.Branches = (List<Core.Entities.Branch>)await _branchService.GetAllBranchesAsync();
+
+        // Если только выбрали шаблон — показываем период
+        if (model.SelectedTemplateId != null && model.Year == null)
+        {
+            var selectedTemplate = model.Templates.FirstOrDefault(t => t.Id == model.SelectedTemplateId);
+            model.PeriodType = selectedTemplate?.DeadlineType;
+
+            return View(model); // показать форму с полями периода
+        }
 
         if (!ModelState.IsValid || model.SelectedTemplateId == null || model.Year == null)
             return View(model);
