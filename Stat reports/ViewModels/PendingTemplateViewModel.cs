@@ -2,6 +2,7 @@
 {
     public class PendingTemplateViewModel
     {
+        public int? DeadlineId { get; set; }
         public int TemplateId { get; set; }
         public string TemplateName { get; set; }
         public DateTime Deadline { get; set; }

@@ -76,16 +76,17 @@ namespace Stat_reports.Controllers
             return report == null ? NotFound() : View(report);
         }
 
-        public async Task<IActionResult> PreviewExcel(int id)
+        public async Task<IActionResult> PreviewExcel(int reportid,int deadlineId)
         {
-            var report = await _reportService.GetReportByIdAsync(id);
+            var report = await _reportService.GetReportByIdAsync(reportid);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
                 return NotFound("Файл отчета не найден");
 
-            var excelData = await _reportService.ReadExcelFileAsync(id);
+            var excelData = await _reportService.ReadExcelFileAsync(reportid);
             var model = new ExcelPreviewViewModel
             {
-                ReportId = id,
+                DeadlineId= deadlineId,
+                ReportId = reportid,
                 ReportName = report.Name,
                 ExcelData = excelData,
                 Comment = report.Comment, // Load existing comment
@@ -128,6 +129,7 @@ namespace Stat_reports.Controllers
 
             var viewModel = templates.Select(t => new PendingTemplateViewModel
             {
+                DeadlineId = t.Id,
                 TemplateId = t.TemplateId,
                 TemplateName = t.TemplateName,
                 Deadline = t.Deadline,

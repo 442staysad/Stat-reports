@@ -220,9 +220,10 @@ namespace Core.Services
 
                 var existingReport = await _reportRepository.FindAsync(r =>
                     r.BranchId == branchId); // Фильтрация по филиалу
-
+                var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == template.Id);
                 pendingTemplates.Add(new PendingTemplateDto
                 {
+                    Id = deadline.Id,
                     TemplateId = template.ReportTemplateId,
                     TemplateName = template.Template?.Name ?? "Неизвестный шаблон",
                     Deadline = template.DeadlineDate,

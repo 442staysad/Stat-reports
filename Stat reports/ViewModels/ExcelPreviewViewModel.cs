@@ -4,6 +4,7 @@ namespace Stat_reports.ViewModels
 {
     public class ExcelPreviewViewModel
     {
+        public int DeadlineId { get; set; }
         public int ReportId { get; set; }
         public string ReportName { get; set; }
         public Dictionary<string, Dictionary<string, List<List<string>>>> ExcelData { get; set; } // Исправляем тип
