@@ -101,7 +101,7 @@ namespace Stat_reports.Controllers
         {
             await _reportService.AddReportCommentAsync(reportId, comment);
             await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
-            return RedirectToAction(nameof(PreviewExcel), new { id = reportId });
+            return RedirectToAction(nameof(WorkingReports));
         }
 
         [HttpPost]
@@ -113,7 +113,7 @@ namespace Stat_reports.Controllers
             {
                 await _deadlineService.CheckAndUpdateDeadlineAsync((int)report.TemplateId);
             }
-            return RedirectToAction(nameof(PreviewExcel), new { id = reportId });
+            return RedirectToAction(nameof(WorkingReports));
         }
 
         public async Task<IActionResult> WorkingReports()

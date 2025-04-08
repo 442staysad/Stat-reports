@@ -51,7 +51,7 @@ namespace Core.Services
             return await _reportRepository.FindAllAsync(r => r.BranchId == branchId);
         }
 
-        public async Task<ReportDto> GetReportByIdAsync(int id)
+        public async Task<ReportDto?> GetReportByIdAsync(int id)
         {
             var report = await _reportRepository.FindAsync(r => r.Id == id);
             return report == null ? null : MapToDto(report);
@@ -125,9 +125,9 @@ namespace Core.Services
 
             var templateName = await _templateRepository.FindAsync(t => t.Id == templateId);
             // Проверяем срок сдачи
-            var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
-            deadline.Status = ReportStatus.Draft;
-            await _deadlineRepository.UpdateAsync(deadline);
+
+
+
             // Сохраняем файл
             var filePath = await _fileService.SaveFileAsync(file, "Reports",branchname.Name,DateTime.Now.Year,templateName.Name);
 
@@ -145,6 +145,12 @@ namespace Core.Services
             };
 
             var createdReport = await _reportRepository.AddAsync(report);
+
+            var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId);
+            deadline.Status = ReportStatus.Draft;
+            deadline.ReportId = createdReport.Id;
+            await _deadlineRepository.UpdateAsync(deadline);
+
             return MapToDto(createdReport);
         }
 
@@ -154,14 +160,17 @@ namespace Core.Services
         
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
         {
-            var deadline = await _deadlineRepository.FindAsync(r=>r.Id==reportId);
+            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            if (report == null) return false;
+            var deadline = await _deadlineRepository.FindAsync(r=>r.ReportTemplateId==report.TemplateId);
             if (deadline == null) return false;
 
+            
             deadline.Status= newStatus;
             if (!string.IsNullOrEmpty(remarks))
                 deadline.Comment = remarks;
 
-            _deadlineRepository.UpdateAsync(deadline);
+            await _deadlineRepository.UpdateAsync(deadline);
 
             if (newStatus == ReportStatus.Reviewed)
             {
@@ -181,7 +190,12 @@ namespace Core.Services
 
             report.Comment = comment;
             await _reportRepository.UpdateAsync(report);
+            var deadline = await _deadlineRepository.FindAsync(r => r.ReportTemplateId == report.TemplateId);
+            if (deadline == null) return false;
+            if (!string.IsNullOrEmpty(comment))
+                deadline.Comment = comment;
 
+            await _deadlineRepository.UpdateAsync(deadline);
             return true;
         }
 
@@ -198,37 +212,36 @@ namespace Core.Services
         {
             var today = DateTime.UtcNow;
 
-            var templates = await _deadlineRepository
+            var deadlines = await _deadlineRepository
                 .GetAll(q => q.Include(t => t.Template))
                 .Where(d => d.BranchId == branchId) // Фильтрация по филиалу
                 .ToListAsync();
 
             var pendingTemplates = new List<PendingTemplateDto>();
 
-            foreach (var template in templates)
+            foreach (var deadline in deadlines)
             {
-                if (template == null)
+                if (deadline == null)
                 {
                     Console.WriteLine("Ошибка: template == null");
                     continue;
                 }
 
-                if (template.Template == null)
+                if (deadline.Template == null)
                 {
-                    Console.WriteLine($"Ошибка: template.Template == null (TemplateId: {template.ReportTemplateId})");
+                    Console.WriteLine($"Ошибка: template.Template == null (TemplateId: {deadline.ReportTemplateId})");
                 }
 
-                var existingReport = await _reportRepository.FindAsync(r =>
-                    r.BranchId == branchId); // Фильтрация по филиалу
-                var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == template.Id);
+
                 pendingTemplates.Add(new PendingTemplateDto
                 {
-                    Id = deadline.Id,
-                    TemplateId = template.ReportTemplateId,
-                    TemplateName = template.Template?.Name ?? "Неизвестный шаблон",
-                    Deadline = template.DeadlineDate,
-                    ReportId = existingReport?.Id,
-                    Status = template.Status.ToString(),
+                    Id=deadline.Id,
+                    TemplateId = deadline.ReportTemplateId,
+                    TemplateName = deadline.Template?.Name ?? "Неизвестный шаблон",
+                    Deadline = deadline.DeadlineDate,
+                    ReportId = deadline.ReportId,
+                    Status = deadline.Status.ToString(),
+                    Comment=deadline.Comment
                     
                 });
             }

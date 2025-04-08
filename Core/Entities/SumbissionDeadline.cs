@@ -12,6 +12,8 @@ namespace Core.Entities
         public Branch? Branch { get; set; }
         public int ReportTemplateId { get; set; }
         public ReportTemplate Template { get; set; }
+        public int? ReportId { get; set; }=null;
+
         public DeadlineType DeadlineType { get; set; }
         public DateTime DeadlineDate { get; set; }
         public int? FixedDay { get; set; } // Например, 26-е число (если есть)
