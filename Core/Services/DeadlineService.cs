@@ -43,6 +43,7 @@ namespace Core.Services
                 if (isAccepted)
                 {
                     deadline.DeadlineDate = CalculateNextDeadline(deadline);
+                    deadline.Status = ReportStatus.InProgress;
                     await _deadlineRepository.UpdateAsync(deadline);
                 }
 

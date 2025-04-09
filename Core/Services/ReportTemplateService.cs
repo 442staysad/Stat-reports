@@ -13,18 +13,21 @@ namespace Core.Services
     {
         private readonly IRepository<ReportTemplate> _reportTemplateRepository;
         private readonly IRepository<SubmissionDeadline> _DeadlineRepository;
+        private readonly IBranchService _branchService;
         private readonly IDeadlineService _deadlineService;
         private readonly IFileService _fileService;
 
         public ReportTemplateService(IRepository<ReportTemplate> reportTemplateRepository, 
             IRepository<SubmissionDeadline> deadlineRepository,
             IFileService fileService,
-            IDeadlineService deadlineService)
+            IDeadlineService deadlineService,
+            IBranchService branchService)
         {
             _reportTemplateRepository = reportTemplateRepository;
             _DeadlineRepository = deadlineRepository;
             _fileService = fileService;
             _deadlineService = deadlineService;
+            _branchService = branchService;
         }
 
         public async Task<SubmissionDeadline> CreateSubmissionDeadlineAsync(SubmissionDeadline deadline)
@@ -44,24 +47,29 @@ namespace Core.Services
 
         public async Task<ReportTemplate> CreateReportTemplateAsync(ReportTemplate template,DeadlineType deadlineType,int FixedDay, DateTime ReportDate)
         {
+            var branches = await _branchService.GetAllBranchesAsync();
             await _reportTemplateRepository.AddAsync(template);
 
-            // Вычисление дедлайна, используя дату отчета
-            var deadlineDate = _deadlineService.CalculateDeadline(deadlineType, FixedDay, ReportDate);
-
-            // Создание записи о дедлайне
-            var deadline = new SubmissionDeadline
+            foreach (var branch in branches)
             {
-                ReportTemplateId = template.Id,
-                Template = template,
-                DeadlineType = deadlineType,
-                DeadlineDate = deadlineDate,
-                IsClosed = false
-            };
+                // Вычисление дедлайна, используя дату отчета
+                var deadlineDate = _deadlineService.CalculateDeadline(deadlineType, FixedDay, ReportDate);
 
-            // Сохранение дедлайна в базе данных
-            await _DeadlineRepository.AddAsync(deadline);
+                // Создание записи о дедлайне
+                var deadline = new SubmissionDeadline
+                {
+                    BranchId = branch.Id,
+                    Branch = branch,
+                    ReportTemplateId = template.Id,
+                    Template = template,
+                    DeadlineType = deadlineType,
+                    DeadlineDate = deadlineDate,
+                    IsClosed = false
+                };
 
+                // Сохранение дедлайна в базе данных
+                await _DeadlineRepository.AddAsync(deadline);
+            }
             return template;
         }
 

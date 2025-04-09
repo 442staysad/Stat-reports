@@ -16,10 +16,14 @@ namespace Core.Entities
 
         public DeadlineType DeadlineType { get; set; }
         public DateTime DeadlineDate { get; set; }
+        public DateTime Period { get; set; }
+
         public int? FixedDay { get; set; } // Например, 26-е число (если есть)
         public string? Comment { get; set; }
         public bool IsClosed { get; set; } // Новый флаг
+
         public int? ReportStatusId { get; set; } = 4;
+
         public ReportStatus? Status { get; set; } = ReportStatus.InProgress;
     }
 }

@@ -10,11 +10,13 @@ namespace Core.Interfaces
 {
     public interface IReportTemplateService
     {
+        Task<ReportTemplate> CreateReportTemplateAsync(ReportTemplate template, 
+            DeadlineType deadlineType, int FixedDay, DateTime ReportDate);
         Task<SubmissionDeadline> CreateSubmissionDeadlineAsync(SubmissionDeadline deadline);
+        Task<bool> DeleteReportTemplateAsync(int id);
         Task<IEnumerable<ReportTemplate>> GetAllReportTemplatesAsync();
         Task<ReportTemplate> GetReportTemplateByIdAsync(int id);
-        Task<ReportTemplate> CreateReportTemplateAsync(ReportTemplate template, DeadlineType deadlineType, int FixedDay, DateTime ReportDate);
         Task<ReportTemplate> UpdateReportTemplateAsync(ReportTemplate template);
-        Task<bool> DeleteReportTemplateAsync(int id);
+
     }
 }
