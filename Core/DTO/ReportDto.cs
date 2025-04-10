@@ -13,5 +13,7 @@ namespace Core.DTO
         public ReportStatus Status { get; set; }
         public string? FilePath { get; set; }
         public string? Comment { get; set; }
+        public DateTime UploadDate { get; set; }
+        public DateTime Period { get; set; }
     }
 }

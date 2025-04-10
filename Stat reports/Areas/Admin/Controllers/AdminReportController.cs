@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using Core.DTO;
+using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +40,7 @@ namespace Stat_reports.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Report report, IFormFile file)
+        public async Task<IActionResult> Create([FromBody] ReportDto report, IFormFile file)
         {
             if (!ModelState.IsValid)
             {
@@ -50,7 +51,7 @@ namespace Stat_reports.Areas.Admin.Controllers
 
             // Получаем данные филиала и шаблона
             var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
-            var template = await _reportTemplateService.GetReportTemplateByIdAsync(report.TemplateId);
+            var template = await _reportTemplateService.GetReportTemplateByIdAsync((int)report.TemplateId);
 
             if (branch == null || template == null)
             {
@@ -87,7 +88,7 @@ namespace Stat_reports.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, Report report, IFormFile file)
+        public async Task<IActionResult> Edit(int id, ReportDto report, IFormFile file)
         {
             if (id != report.Id)
                 return BadRequest();
@@ -100,7 +101,7 @@ namespace Stat_reports.Areas.Admin.Controllers
             }
 
             var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
-            var template = await _reportTemplateService.GetReportTemplateByIdAsync(report.TemplateId);
+            var template = await _reportTemplateService.GetReportTemplateByIdAsync((int)report.TemplateId);
 
             if (branch == null || template == null)
             {
@@ -119,7 +120,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 report.FilePath = newFilePath;
             }
 
-            await _reportService.UpdateReportAsync(report);
+            await _reportService.UpdateReportAsync(report.Id,report);
             return RedirectToAction(nameof(Index));
         }
         public async Task<IActionResult> Delete(int id)

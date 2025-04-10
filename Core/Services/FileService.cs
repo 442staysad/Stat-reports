@@ -27,7 +27,6 @@ namespace Infrastructure.Services
             try
             {
                 string folderPath;
-
                 if (baseFolder == "Reports" && branchName != null && year > 0 && templateName != null)
                 {
                     folderPath = Path.Combine(_rootPath, branchName, year.ToString(), templateName);

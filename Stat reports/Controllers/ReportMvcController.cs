@@ -100,7 +100,7 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> AddComment(int reportId, string comment)
         {
             await _reportService.AddReportCommentAsync(reportId, comment);
-            await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
+            //await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
             return RedirectToAction(nameof(WorkingReports));
         }
 
@@ -108,11 +108,6 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> AcceptReport(int reportId)
         {
             await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.Reviewed);
-            var report = await _reportService.GetReportByIdAsync(reportId);
-            if (report != null)
-            {
-                await _deadlineService.CheckAndUpdateDeadlineAsync((int)report.TemplateId);
-            }
             return RedirectToAction(nameof(WorkingReports));
         }
 

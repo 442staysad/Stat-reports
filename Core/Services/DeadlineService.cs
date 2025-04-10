@@ -44,7 +44,22 @@ namespace Core.Services
                 {
                     deadline.DeadlineDate = CalculateNextDeadline(deadline);
                     deadline.Status = ReportStatus.InProgress;
-                    await _deadlineRepository.UpdateAsync(deadline);
+                    switch (deadline.DeadlineType)
+                    {
+                        case DeadlineType.Monthly:
+                            deadline.Period = deadline.Period.AddMonths(1);
+                            break;
+                        case DeadlineType.Quarterly:
+                            deadline.Period = deadline.Period.AddMonths(3);
+                            break;
+                        case DeadlineType.HalfYearly:
+                            deadline.Period = deadline.Period.AddMonths(6);
+                            break;
+                        case DeadlineType.Yearly:
+                            deadline.Period = deadline.Period.AddYears(1);
+                            break;
+
+                    }
                 }
 
                 await transaction.CommitAsync();
@@ -62,6 +77,7 @@ namespace Core.Services
             int day = Math.Min(fixedDay, daysInMonth-1);
             return new DateTime(date.Year, date.Month, day);
         }
+
 
         public DateTime CalculateDeadline(DeadlineType deadlineType, int fixedDay, DateTime reportDate)
         {

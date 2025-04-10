@@ -64,6 +64,7 @@ namespace Core.Services
             return MapToDto(createdReport);
         }
 
+
         public async Task<ReportDto> UpdateReportAsync(int id, ReportDto reportDto)
         {
             var existingReport = await _reportRepository.FindAsync(r => r.Id == id);
@@ -88,29 +89,6 @@ namespace Core.Services
 
             await _reportRepository.DeleteAsync(report);
             return true;
-        }
-
-        public async Task<IEnumerable<ReportTemplate>> GetAllTemplatesAsync()
-        {
-            return await _templateRepository.GetAllAsync();
-        }
-
-
-        public ReportService(IRepository<Report> reportRepository)
-        {
-            _reportRepository = reportRepository;
-        }
-
-        public async Task<Report> CreateReportAsync(Report report)
-        {
-            await _reportRepository.AddAsync(report);
-            return report;
-        }
-
-        public async Task<Report> UpdateReportAsync(Report report)
-        {
-            await _reportRepository.DeleteAsync(report);
-            return report;
         }
 
         /// <summary>
@@ -213,13 +191,17 @@ namespace Core.Services
             if (!string.IsNullOrEmpty(remarks))
                 deadline.Comment = remarks;
 
-            await _deadlineRepository.UpdateAsync(deadline);
+
 
             if (newStatus == ReportStatus.Reviewed)
             {
                 await _deadlineService.CheckAndUpdateDeadlineAsync(deadline.ReportTemplateId);
+                deadline.Status = ReportStatus.InProgress;
+                deadline.ReportId = null; // Удаляем связь с отчетом
+                deadline.Comment = null; // Удаляем комментарий
             }
-            
+            await _deadlineRepository.UpdateAsync(deadline);
+
             return true;
         }
 
@@ -229,14 +211,13 @@ namespace Core.Services
         public async Task<bool> AddReportCommentAsync(int reportId, string comment)
         {
             var report = await _reportRepository.FindAsync(r => r.Id == reportId);
-            if (report == null) return false;
 
-            report.Comment = comment;
             await _reportRepository.UpdateAsync(report);
             var deadline = await _deadlineRepository.FindAsync(r => r.ReportTemplateId == report.TemplateId);
             if (deadline == null) return false;
             if (!string.IsNullOrEmpty(comment))
                 deadline.Comment = comment;
+            deadline.Status = ReportStatus.NeedsCorrection;
 
             await _deadlineRepository.UpdateAsync(deadline);
             return true;
@@ -386,7 +367,9 @@ namespace Core.Services
                 UploadedById = report.UploadedById ?? 0, // Fix for nullable type
                 BranchId = report.BranchId,
                 TemplateId = report.TemplateId,
-                Comment = report.Comment
+                Comment = report.Comment,
+                Period = report.Period,
+                UploadDate = report.UploadDate
             };
         }
 
@@ -401,7 +384,9 @@ namespace Core.Services
                 UploadedById = reportDto.UploadedById,
                 BranchId = reportDto.BranchId ?? 0,
                 TemplateId = reportDto.TemplateId ?? 0,
-                Comment = reportDto.Comment
+                Comment = reportDto.Comment,
+                Period = reportDto.Period
+                
             };
         }
     }
