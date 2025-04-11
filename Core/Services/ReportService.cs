@@ -20,6 +20,7 @@ namespace Core.Services
         private readonly IRepository<SubmissionDeadline> _deadlineRepository;
         private readonly IRepository<Branch> _branchRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly INotificationService _notificationService;
         private readonly IFileService _fileService;
         private readonly IDeadlineService _deadlineService;
 
@@ -30,7 +31,8 @@ namespace Core.Services
             IFileService fileService,
             IDeadlineService deadlineService, 
             IRepository<Branch> branchrepository,
-            IRepository<User> userRepository)
+            IRepository<User> userRepository,
+            INotificationService notificationService)
         {
             this._reportRepository = _reportRepository;
             _templateRepository = templateRepository;
@@ -39,6 +41,7 @@ namespace Core.Services
             _deadlineService = deadlineService;
             _userRepository = userRepository;
             _branchRepository = branchrepository;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<Report>> GetAllReportsAsync()
@@ -195,6 +198,7 @@ namespace Core.Services
 
             if (newStatus == ReportStatus.Reviewed)
             {
+                await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: Отчет принят");
                 await _deadlineService.CheckAndUpdateDeadlineAsync(deadline.ReportTemplateId);
                 deadline.Status = ReportStatus.InProgress;
                 deadline.ReportId = null; // Удаляем связь с отчетом
@@ -218,6 +222,8 @@ namespace Core.Services
             if (!string.IsNullOrEmpty(comment))
                 deadline.Comment = comment;
             deadline.Status = ReportStatus.NeedsCorrection;
+
+            await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: {comment}");
 
             await _deadlineRepository.UpdateAsync(deadline);
             return true;

@@ -17,6 +17,7 @@ using System.Collections.Generic;
         public DbSet<Report> Reports { get; set; }
         public DbSet<SubmissionDeadline> SubmissionDeadlines { get; set; }
         public DbSet<SummaryReport> SummaryReports { get; set; }
+        public DbSet<Notification> Notifications { get; set; } // Добавлено для уведомлений
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -74,6 +75,7 @@ using System.Collections.Generic;
                 .OnDelete(DeleteBehavior.Cascade);
 
 
+            
             modelBuilder.Entity<SummaryReport>()
                 .HasOne(sr => sr.ReportTemplate)
                 .WithMany()
@@ -83,6 +85,12 @@ using System.Collections.Generic;
             modelBuilder.Entity<SummaryReport>()
                 .HasMany(sr => sr.Reports)
                 .WithOne()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

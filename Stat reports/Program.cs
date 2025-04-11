@@ -28,6 +28,7 @@ builder.Services.AddScoped<IExcelSplitterService, ExcelSplitterService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISummaryReportService, SummaryReportService>();
 builder.Services.AddScoped<IDeadlineService, DeadlineService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 //ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
 builder.Services.AddSingleton<AdminAuthFilter>();
 builder.Services.AddSingleton<AuthorizeBranchAndUserAttribute>();
