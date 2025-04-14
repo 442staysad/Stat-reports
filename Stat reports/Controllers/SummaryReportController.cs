@@ -1,9 +1,11 @@
 ﻿using Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stat_reports.ViewModels;
 using Stat_reportsnt.Filters;
 
 [AuthorizeBranchAndUser]
+[Authorize(Roles = "Admin,PEB,OBUnF")]
 public class SummaryReportController : Controller
 {
     private readonly ISummaryReportService _summaryReportService;
@@ -57,6 +59,6 @@ public class SummaryReportController : Controller
 
         var mergedExcel = _summaryReportService.MergeReportsToExcel(reports, templatePath);
 
-        return File(mergedExcel, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "СводныйОтчет.xlsx");
+        return File(mergedExcel, $"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Сводный {model.Templates.FirstOrDefault(t=>t.Id==model.SelectedTemplateId)}.xlsx");
     }
 }

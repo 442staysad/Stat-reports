@@ -9,7 +9,7 @@ using System.Collections.Generic;
     {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { Database.Migrate(); }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Branch> Branches { get; set; }
@@ -17,6 +17,7 @@ using System.Collections.Generic;
         public DbSet<Report> Reports { get; set; }
         public DbSet<SubmissionDeadline> SubmissionDeadlines { get; set; }
         public DbSet<SummaryReport> SummaryReports { get; set; }
+        public DbSet<SystemRole> SystemRoles { get; set; } // Добавлено для ролей пользователей
         public DbSet<Notification> Notifications { get; set; } // Добавлено для уведомлений
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

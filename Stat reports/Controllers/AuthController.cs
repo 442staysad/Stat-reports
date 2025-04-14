@@ -3,6 +3,10 @@ using Core.Interfaces;
 using Stat_reports.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Stat_reports.Controllers
 {
@@ -15,12 +19,14 @@ namespace Stat_reports.Controllers
             _authService = authService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult BranchLogin()
         {
             return View();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> BranchLogin(BranchLoginModel model)
         {
@@ -39,6 +45,7 @@ namespace Stat_reports.Controllers
             return RedirectToAction("UserLogin");
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult UserLogin()
         {
@@ -48,6 +55,7 @@ namespace Stat_reports.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> UserLogin(UserLoginModel model)
         {
@@ -65,13 +73,29 @@ namespace Stat_reports.Controllers
                 return View(model);
             }
 
+            // Создаем claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, user.Role.RoleName), // ВАЖНО: роль
+                new Claim("FullName", user.FullName ?? ""),
+                new Claim("BranchId", user.BranchId?.ToString() ?? "")
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
             HttpContext.Session.SetInt32("UserId", user.Id);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
             return RedirectToAction("Index", "Home");
         }
 
-        public IActionResult Logout()
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Clear();
+            HttpContext.Session.Clear(); // если хочешь чистить
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("BranchLogin");
         }
     }

@@ -15,7 +15,8 @@ namespace Core.Entities
         public string? Position { get; set; }
         public int? AccessId {  get; set; }
         public string PasswordHash { get; set; }
-        public string? Role { get; set; }
+        public int RoleId { get; set; }
+        public SystemRole Role { get; set; } // Для пользователей с ролью "Администратор" или "Пользователь"
         public int? BranchId { get; set; } // Для пользователей филиалов
         public Branch? Branch { get; set; }
     }

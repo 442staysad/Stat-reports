@@ -2,6 +2,7 @@
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services
 {
@@ -25,7 +26,7 @@ namespace Core.Services
 
         public async Task<User> AuthenticateUserAsync(int branchId, string username, string password)
         {
-            var user = await _userRepository.FindAsync(u => u.BranchId == branchId && u.UserName == username);
+            var user = await _userRepository.FindAsync(u => u.BranchId == branchId && u.UserName == username,r=>r.Include(ur=>ur.Role));
             if (user == null) return null;
 
             var result = _userpasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password);

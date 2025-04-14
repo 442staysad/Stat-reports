@@ -3,6 +3,7 @@ using Core.DTO;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stat_reports.ViewModels;
@@ -76,6 +77,7 @@ namespace Stat_reports.Controllers
             return report == null ? NotFound() : View(report);
         }
 
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
         public async Task<IActionResult> PreviewExcel(int reportid,int deadlineId)
         {
             var report = await _reportService.GetReportByIdAsync(reportid);
@@ -97,6 +99,7 @@ namespace Stat_reports.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
         public async Task<IActionResult> AddComment(int reportId, string comment)
         {
             await _reportService.AddReportCommentAsync(reportId, comment);
@@ -105,6 +108,7 @@ namespace Stat_reports.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
         public async Task<IActionResult> AcceptReport(int reportId)
         {
             await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.Reviewed);
@@ -145,6 +149,7 @@ namespace Stat_reports.Controllers
             await _reportService.UpdateReportAsync(id, reportDto);
             return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Delete(int id)
         {

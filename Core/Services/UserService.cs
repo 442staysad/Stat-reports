@@ -25,6 +25,10 @@ namespace Core.Services
         {
             return await _userRepository.FindAsync(u => u.Id == id);
         }
+        public async Task<IEnumerable<User>> GetUsersByBranchIdAsync(int branchId)
+        {
+            return await _userRepository.FindAllAsync(u => u.BranchId == branchId);
+        }
 
         public async Task<User> CreateUserAsync(User user)
         {

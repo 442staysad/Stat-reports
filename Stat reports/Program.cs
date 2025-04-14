@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Infrastructure.Data;
 using Infrastructure.Repository;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -29,11 +30,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISummaryReportService, SummaryReportService>();
 builder.Services.AddScoped<IDeadlineService, DeadlineService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-//ilder.Services.AddHostedService<ReportDeadlineCheckerHostedService>();
+
+builder.Services.AddHostedService<DeadlineNotificationHostedService>();
+
 builder.Services.AddSingleton<AdminAuthFilter>();
 builder.Services.AddSingleton<AuthorizeBranchAndUserAttribute>();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -45,6 +50,14 @@ builder.Services.AddScoped<IFileService,FileService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IPasswordHasher<Branch>, PasswordHasher<Branch>>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/BranchLogin"; // при попытке неавторизованного доступа
+        options.AccessDeniedPath = "/Auth/AccessDenied"; // при запрете по ролям
+    });
+
 var app = builder.Build();
 
 // Настройка Middleware
@@ -60,7 +73,12 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+
+
+
+
 app.UseEndpoints(endpoints =>
 {
     // Указываем маршруты для областей

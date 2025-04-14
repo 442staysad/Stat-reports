@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Core.Services
@@ -25,6 +26,10 @@ namespace Core.Services
 
         }
 
+        public async Task<IEnumerable<SubmissionDeadline>> GetAllAsync()
+        {
+            return await _deadlineRepository.GetAll(t => t.Include(r => r.Template)).ToListAsync();
+        }
         public async Task CheckAndUpdateDeadlineAsync(int templateId)
         {
             using var transaction = await _deadlineRepository.BeginTransactionAsync();

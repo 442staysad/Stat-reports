@@ -10,6 +10,7 @@ namespace Core.Entities
     {
         public int UserId { get; set; } // Пользователь, которому адресовано уведомление
         public User User { get; set; } // Пользователь, которому адресовано уведомление
+        //public string Header { get; set; }
         public string Message { get; set; } // Текст уведомления
         public bool IsRead { get; set; } // Прочитано ли уведомление
         public DateTime CreatedAt { get; set; } // Дата создания уведомления

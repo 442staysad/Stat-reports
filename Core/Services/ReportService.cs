@@ -67,6 +67,14 @@ namespace Core.Services
             return MapToDto(createdReport);
         }
 
+        public async Task<Report?> FindByTemplateBranchPeriodAsync(int templateId, int branchId, int year, int month)
+        {
+            return await _reportRepository.FindAsync(r =>
+                r.TemplateId == templateId &&
+                r.BranchId == branchId &&
+                r.Period.Year == year &&
+                r.Period.Month == month);
+        }
 
         public async Task<ReportDto> UpdateReportAsync(int id, ReportDto reportDto)
         {
@@ -203,6 +211,11 @@ namespace Core.Services
                 deadline.Status = ReportStatus.InProgress;
                 deadline.ReportId = null; // Удаляем связь с отчетом
                 deadline.Comment = null; // Удаляем комментарий
+                var branchUsers = await _userRepository.FindAllAsync(u => u.BranchId == report.BranchId);
+                foreach (var user in branchUsers)
+                {
+                    await _notificationService.AddNotificationAsync(user.Id, $"Отчет '{report.Name}' был принят.");
+                }
             }
             await _deadlineRepository.UpdateAsync(deadline);
 
@@ -219,10 +232,17 @@ namespace Core.Services
             await _reportRepository.UpdateAsync(report);
             var deadline = await _deadlineRepository.FindAsync(r => r.ReportTemplateId == report.TemplateId);
             if (deadline == null) return false;
-            if (!string.IsNullOrEmpty(comment))
-                deadline.Comment = comment;
-            deadline.Status = ReportStatus.NeedsCorrection;
 
+            deadline.Status = ReportStatus.NeedsCorrection;
+            if (!string.IsNullOrWhiteSpace(report.Comment))
+            {
+                deadline.Comment = comment;
+                var branchUsers = await _userRepository.FindAllAsync(u => u.BranchId == report.BranchId);
+                foreach (var user in branchUsers)
+                {
+                    await _notificationService.AddNotificationAsync(user.Id, $"К отчету '{report.Name}' был добавлен комментарий: \"{report.Comment}\"");
+                }
+            }
             await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: {comment}");
 
             await _deadlineRepository.UpdateAsync(deadline);

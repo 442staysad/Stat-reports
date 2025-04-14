@@ -1,4 +1,7 @@
-﻿
+﻿@{
+    var userId = Context.Session.GetInt32("UserId") ?? 0;
+    var unreadCount = (await _notificationService.GetUserNotificationsAsync(userId)).Count();
+}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -34,8 +37,16 @@
                                 <li><a class="dropdown-item" asp-controller="SummaryReport" asp-action="Summary">Сводный отчет</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">🔔 Уведомления</a>
+                        <li class="nav-item position-relative">
+                            <a class="nav-link" asp-controller="Notification" asp-action="Index">
+                                🔔 Уведомления
+                                @if (unreadCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        @unreadCount
+                                    </span>
+                                }
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">👤 Аккаунт</a>

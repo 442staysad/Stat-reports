@@ -1,0 +1,40 @@
+﻿@model IEnumerable<Core.Entities.Notification>
+@{
+    ViewData["Title"] = "Уведомления";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">🔔 Уведомления</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info shadow-sm rounded">
+            У вас нет новых уведомлений.
+        </div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var notification in Model.OrderByDescending(n => n.CreatedAt))
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-start @(!notification.IsRead ? "bg-light border-start border-4 border-warning" : "")">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">@notification.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                        <span>@notification.Message</span>
+                    </div>
+                    @if (!notification.IsRead)
+                    {
+                        <form asp-controller="Notification" asp-action="MarkAsRead" method="post" class="ms-3">
+                            <input type="hidden" name="id" value="@notification.Id" />
+                            <button class="btn btn-sm btn-outline-success" title="Отметить как прочитанное">✔</button>
+                        </form>
+                    }
+                    <form asp-controller="Notification" asp-action="Delete" method="post" class="ms-2">
+                        <input type="hidden" name="id" value="@notification.Id" />
+                        <button class="btn btn-sm btn-outline-danger" title="Удалить">🗑</button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+</div>

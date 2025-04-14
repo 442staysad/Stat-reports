@@ -38,7 +38,7 @@ namespace Stat_reports.Areas.Admin.Controllers
             {
                 UserName = userm.UserName,
                 FullName = userm.FullName,
-                Role = userm.Role,
+                RoleId = (int)userm.Role,
                 BranchId = userm.BranchId,
                 Email = userm.Email,
                 Number = userm.Number,

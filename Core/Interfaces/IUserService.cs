@@ -10,5 +10,7 @@ namespace Core.Interfaces
         Task<User> CreateUserAsync(User user);
         Task<User> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(int id);
+        Task<IEnumerable<User>> GetUsersByBranchIdAsync(int branchId);
+
     }
 }
