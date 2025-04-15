@@ -26,8 +26,10 @@ public class SummaryReportController : Controller
     {
         var model = new SummaryReportGenerationViewModel
         {
-            Templates = (List<Core.Entities.ReportTemplate>)await _reportTemplateService.GetAllReportTemplatesAsync(),
-            Branches = (List<Core.Entities.Branch>)await _branchService.GetAllBranchesAsync()
+            Templates = (List<Core.Entities.ReportTemplate>)
+            await _reportTemplateService.GetAllReportTemplatesAsync(),
+            Branches = (List<Core.Entities.Branch>)
+            await _branchService.GetAllBranchesAsync()
         };
 
         return View(model);
@@ -36,13 +38,16 @@ public class SummaryReportController : Controller
     [HttpPost]
     public async Task<IActionResult> Summary(SummaryReportGenerationViewModel model)
     {
-        model.Templates = (List<Core.Entities.ReportTemplate>)await _reportTemplateService.GetAllReportTemplatesAsync();
-        model.Branches = (List<Core.Entities.Branch>)await _branchService.GetAllBranchesAsync();
+        model.Templates = (List<Core.Entities.ReportTemplate>)
+            await _reportTemplateService.GetAllReportTemplatesAsync();
+        model.Branches = (List<Core.Entities.Branch>)
+            await _branchService.GetAllBranchesAsync();
 
         // Если только выбрали шаблон — показываем период
         if (model.SelectedTemplateId != null && model.Year == null)
         {
-            var selectedTemplate = model.Templates.FirstOrDefault(t => t.Id == model.SelectedTemplateId);
+            var selectedTemplate = model.Templates.
+                FirstOrDefault(t => t.Id == model.SelectedTemplateId);
             model.PeriodType = selectedTemplate?.DeadlineType;
 
             return View(model); // показать форму с полями периода
@@ -52,13 +57,17 @@ public class SummaryReportController : Controller
             return View(model);
 
         // Получаем нужные отчеты
-        var reports = await _summaryReportService.GetReportsForSummaryAsync(model.SelectedTemplateId.Value,
+        var reports = await _summaryReportService.
+            GetReportsForSummaryAsync(model.SelectedTemplateId.Value,
             model.Year.Value, model.Month, model.Quarter, model.HalfYearPeriod, model.SelectedBranchIds);
 
-        var templatePath = await _summaryReportService.GetTemplateFilePathAsync(model.SelectedTemplateId.Value);
+        var templatePath = await _summaryReportService.
+            GetTemplateFilePathAsync(model.SelectedTemplateId.Value);
 
-        var mergedExcel = _summaryReportService.MergeReportsToExcel(reports, templatePath);
+        var mergedExcel = _summaryReportService.
+            MergeReportsToExcel(reports, templatePath);
 
-        return File(mergedExcel, $"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Сводный {model.Templates.FirstOrDefault(t=>t.Id==model.SelectedTemplateId)}.xlsx");
+        return File(mergedExcel, $"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"Сводный {model.Templates.FirstOrDefault(t=>t.Id==model.SelectedTemplateId)}.xlsx");
     }
 }

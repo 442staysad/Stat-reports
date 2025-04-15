@@ -9,7 +9,7 @@ using System.Collections.Generic;
     {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { Database.Migrate(); }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {  }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Branch> Branches { get; set; }

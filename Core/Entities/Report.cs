@@ -18,6 +18,8 @@ namespace Core.Entities
 
         public string FilePath { get; set; }//название отчета
 
+        public ReportType Type { get; set; } // Тип отчета (план/факт)
+
         public ICollection<ReportAccess>? Accesses { get; set; }
         public string? Comment { get; set; }
     }

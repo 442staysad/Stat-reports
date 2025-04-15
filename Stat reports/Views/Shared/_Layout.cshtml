@@ -24,9 +24,12 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link active" asp-area="" asp-controller="Home" asp-action="Index">📈 Дашборд</a>
-                        </li>
+                        @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link active" asp-area="" asp-controller="Home" asp-action="Index">📈 Дашборд</a>
+                            </li>
+                        }
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
                                 📋 Отчеты
@@ -34,6 +37,10 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" asp-controller="ReportMvc" asp-action="WorkingReports">Отчеты в работе</a></li>
                                 <li><a class="dropdown-item" asp-controller="ReportMvc" asp-action="ReportArchive">Архив отчетов</a></li>
+                                @if (User.IsInRole("Admin") || User.IsInRole("PEB")|| User.IsInRole("OBUnF"))
+								{
+									<li><a class="dropdown-item" asp-controller="ReportMvc" asp-action="CreateReport">Создать отчет</a></li>
+								}
                                 <li><a class="dropdown-item" asp-controller="SummaryReport" asp-action="Summary">Сводный отчет</a></li>
                             </ul>
                         </li>
