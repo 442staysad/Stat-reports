@@ -133,7 +133,7 @@
                         </td>
                         <td>@item.Comment</td>
                         <td class="text-center">
-                            @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
+                            @if (item.Status == "Draft" )
                             {
                                 <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="templateId" value="@item.TemplateId" />
@@ -152,9 +152,7 @@
                                 <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
                                     <i class="bi bi-trash"></i> Удалить
                                 </a>
-                            }
-                            else
-                            {
+
                                 <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">Просмотр</a>
                             }
                         </td>

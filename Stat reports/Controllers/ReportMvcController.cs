@@ -134,7 +134,8 @@ namespace Stat_reports.Controllers
                 Deadline = t.Deadline,
                 Status = t.Status,
                 Comment = t.Comment,
-                ReportId = t.ReportId
+                ReportId = t.ReportId,
+                ReportType= t.ReportType
             }).ToList();
 
             return View(viewModel);

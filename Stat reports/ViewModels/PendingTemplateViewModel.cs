@@ -5,6 +5,7 @@
         public int? DeadlineId { get; set; }
         public int TemplateId { get; set; }
         public string TemplateName { get; set; }
+        public string ReportType {  get; set; }
         public DateTime Deadline { get; set; }
         public string? Status { get; set; }
         public string? Comment { get; set; }
