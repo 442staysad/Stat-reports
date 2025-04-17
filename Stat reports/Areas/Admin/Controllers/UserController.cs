@@ -43,7 +43,8 @@ namespace Stat_reports.Areas.Admin.Controllers
                 Email = userm.Email,
                 Number = userm.Number,
                 Position = userm.Position,
-                PasswordHash=userm.PasswordHash
+                PasswordHash=userm.PasswordHash,
+                
             };
             if (ModelState.IsValid)
             {

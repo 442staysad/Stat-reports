@@ -10,6 +10,8 @@
         public string? Status { get; set; }
         public string? Comment { get; set; }
         public int? ReportId { get; set; }
-        public int BranchId { get; set; } // Add this property
+        public int BranchId { get; set; } 
+        public string BranchName { get; set; } 
+        
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Core.DTO;
+using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Services;
@@ -126,6 +127,8 @@ namespace Stat_reports.Controllers
 
             var templates = await _reportService.GetPendingTemplatesAsync(branchId.Value);
 
+            var branches = await _branchService.GetAllBranchesAsync(); // Получаем список всех филиалов
+
             var viewModel = templates.Select(t => new PendingTemplateViewModel
             {
                 DeadlineId = t.Id,
@@ -135,7 +138,10 @@ namespace Stat_reports.Controllers
                 Status = t.Status,
                 Comment = t.Comment,
                 ReportId = t.ReportId,
-                ReportType= t.ReportType
+                ReportType = t.ReportType,
+                BranchId = (int)t.BranchId,
+                BranchName = branches.FirstOrDefault(b => b.Id == t.BranchId)?.Name 
+                ?? "Неизвестный филиал" // Получаем название филиала
             }).ToList();
 
             return View(viewModel);

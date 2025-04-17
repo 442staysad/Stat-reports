@@ -4,87 +4,107 @@
     ViewData["Title"] = "Архив отчетов";
 }
 
-<h2>Архив отчетов</h2>
+<div class="card shadow-sm rounded-4 p-4 bg-white">
+    <h2 class="mb-4 text-primary">📦 Архив отчетов</h2>
 
-<form method="get" asp-action="ReportArchive">
-    <div class="form-group">
-        <label for="name">Название отчета</label>
-        <input type="text" class="form-control" id="name" name="name" value="@Model.Filter.Name" />
-    </div>
-    <div class="form-group">
-        <label for="templateId">Отчет</label>
-        <select class="form-control" id="templateId" name="templateId">
-            <option value="">Все</option>
-            @foreach (var template in Model.Templates)
-            {
-                <option value="@template.Id" selected="@(template.Id == Model.Filter.TemplateId)">@template.Name</option>
-            }
-        </select>
-    </div>
-    @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
-    {
-        <div class="form-group">
-            <label for="branchId">Филиал</label>
-            <select class="form-control" id="branchId" name="branchId">
+    <form method="get" asp-action="ReportArchive" class="row g-3">
+        <div class="col-md-4">
+            <label for="name" class="form-label">Название отчета</label>
+            <input type="text" class="form-control" id="name" name="name" value="@Model.Filter.Name" placeholder="Введите название" />
+        </div>
+
+        <div class="col-md-4">
+            <label for="templateId" class="form-label">Тип отчета</label>
+            <select class="form-select" id="templateId" name="templateId">
                 <option value="">Все</option>
-                @foreach (var branch in Model.Branches)
+                @foreach (var template in Model.Templates)
                 {
-                    <option value="@branch.Id" selected="@(branch.Id == Model.Filter.BranchId)">@branch.Name</option>
+                    <option value="@template.Id" selected="@(template.Id == Model.Filter.TemplateId)">@template.Name</option>
                 }
             </select>
         </div>
-    }
-    else if (User.IsInRole("User"))
-    {
-        <div class="form-group">
-            <label for="branchId">Филиал</label>
-            <select class="form-control" id="branchId" name="branchId">
-                @if (Model.Branches.Any(b => b.Id == Model.Filter.BranchId))
-                {
-                    var userBranch = Model.Branches.FirstOrDefault(b => b.Id == Model.Filter.BranchId);
-                    <option value="@userBranch.Id" selected>@userBranch.Name</option>
-                }
-            </select>
-        </div>
-    }
-    <div class="form-group">
-        <label for="startDate">Дата начала</label>
-        <input type="date" class="form-control" id="startDate" name="startDate" value="@Model.Filter.StartDate?.ToString("yyyy-MM-dd")" />
-    </div>
-    <div class="form-group">
-        <label for="endDate">Дата окончания</label>
-        <input type="date" class="form-control" id="endDate" name="endDate" value="@Model.Filter.EndDate?.ToString("yyyy-MM-dd")" />
-    </div>
-    <button type="submit" class="btn btn-primary">Фильтровать</button>
-</form>
 
-<table class="table table-striped mt-4">
-    <thead>
-        <tr>
-            <th>Название</th>
-            <th>Шаблон</th>
-            <th>Филиал</th>
-            <th>Дата загрузки</th>
-            <th>Статус</th>
-            <th>Комментарий</th>
-            <th>Действия</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var report in Model.Reports)
+        @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
         {
-            <tr>
-                <td>@report.Name</td>
-                <td>@report.TemplateId</td>
-                <td>@report.BranchId</td>
-                <td>@report.SubmissionDate.ToString("dd.MM.yyyy")</td>
-                <td>@report.Status</td>
-                <td>@report.Comment</td>
-                <td>
-                    <a asp-action="DownloadReport" asp-route-reportname="@report.Name" asp-route-reportId="@report.Id" class="btn btn-sm btn-primary">Скачать</a>
-                    
-                </td>
-            </tr>
+            <div class="col-md-4">
+                <label for="branchId" class="form-label">Филиал</label>
+                <select class="form-select" id="branchId" name="branchId">
+                    <option value="">Все</option>
+                    @foreach (var branch in Model.Branches)
+                    {
+                        <option value="@branch.Id" selected="@(branch.Id == Model.Filter.BranchId)">@branch.Name</option>
+                    }
+                </select>
+            </div>
         }
-    </tbody>
-</table>
+        else if (User.IsInRole("User"))
+        {
+            <div class="col-md-4">
+                <label for="branchId" class="form-label">Филиал</label>
+                <select class="form-select" id="branchId" name="branchId" disabled>
+                    @if (Model.Branches.Any(b => b.Id == Model.Filter.BranchId))
+                    {
+                        var userBranch = Model.Branches.FirstOrDefault(b => b.Id == Model.Filter.BranchId);
+                        <option value="@userBranch.Id" selected>@userBranch.Name</option>
+                    }
+                </select>
+            </div>
+        }
+
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Дата начала</label>
+            <input type="date" class="form-control" id="startDate" name="startDate" value="@Model.Filter.StartDate?.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">Дата окончания</label>
+            <input type="date" class="form-control" id="endDate" name="endDate" value="@Model.Filter.EndDate?.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-outline-primary w-100">🔍 Фильтровать</button>
+        </div>
+    </form>
+
+    <hr class="my-4" />
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Название</th>
+                    <th>Тип</th>
+                    <th>Филиал</th>
+                    <th>Дата загрузки</th>
+                    <th>Статус</th>
+                    <th>Комментарий</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var report in Model.Reports)
+                {
+                    <tr>
+                        <td>@report.Name</td>
+                        <td>@Model.Templates.FirstOrDefault(t => t.Id == report.TemplateId)?.Name</td>
+                        <td>@Model.Branches.FirstOrDefault(b => b.Id == report.BranchId)?.Name</td>
+                        <td>@report.SubmissionDate.ToString("dd.MM.yyyy")</td>
+                        <td>@report.Status</td>
+                        <td>@report.Comment</td>
+                        <td>
+                            <a asp-action="DownloadReport" asp-route-reportname="@report.Name" asp-route-reportId="@report.Id" class="btn btn-sm btn-primary">
+                                ⬇ Скачать
+                            </a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Reports.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Нет отчетов по заданным фильтрам</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

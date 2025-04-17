@@ -1,32 +1,91 @@
 ﻿@model List<Stat_reports.ViewModels.PendingTemplateViewModel>
+
 @{
+
     ViewData["Title"] = "Отчеты в работе";
     bool isAdminOrHeadOffice = true;
     int? branchId = HttpContextAccessor.HttpContext?.Session?.GetInt32("BranchId");
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">@ViewData["Title"]</h2>
+@section Styles {
+    <style>
+        body {
+            background: linear-gradient(to right, #003366, #0066cc);
+            color: white;
+            min-height: 100vh;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 1200px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .table thead {
+            background-color: #002244 !important;
+            color: white;
+        }
+
+        .table tbody {
+            background-color: rgba(255, 255, 255, 0.85);
+            color: #000;
+        }
+
+        .badge {
+            font-size: 0.9rem;
+        }
+
+        .btn-primary, .btn-success, .btn-danger {
+            margin-right: 5px;
+        }
+
+        .nav-tabs .nav-link {
+            color: white;
+        }
+
+            .nav-tabs .nav-link.active {
+                background-color: #ffcc00;
+                color: #003366;
+                border: none;
+            }
+    </style>
+}
+
+<div class="main-container">
+    <h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
     @if (isAdminOrHeadOffice)
     {
         <ul class="nav nav-tabs" id="branchTabs" role="tablist">
-            @foreach (var branch in Model.Select(m => m.BranchId).Distinct())
+            @foreach (var branchName in Model.Select(m => m.BranchName).Distinct())
             {
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @(branch == Model.First().BranchId ? "active" : "")" id="tab-@branch" data-bs-toggle="tab" data-bs-target="#branch-@branch" type="button" role="tab" aria-controls="branch-@branch" aria-selected="@(branch == Model.First().BranchId)">
-                        Branch @branch
+                    <button class="nav-link @(branchName == Model.First().BranchName ? "active" : "")"
+                            id="tab-@branchName"
+                            data-bs-toggle="tab"
+                            data-bs-target="#branch-@branchName"
+                            type="button"
+                            role="tab"
+                            aria-controls="branch-@branchName"
+                            aria-selected="@(branchName == Model.First().BranchName)">
+                        @branchName
                     </button>
                 </li>
             }
         </ul>
-        <div class="tab-content" id="branchTabsContent">
-            @foreach (var branch in Model.Select(m => m.BranchId).Distinct())
+
+        <div class="tab-content mt-3" id="branchTabsContent">
+            @foreach (var branchGroup in Model.GroupBy(m => m.BranchName))
             {
-                <div class="tab-pane fade @(branch == Model.First().BranchId ? "show active" : "")" id="branch-@branch" role="tabpanel" aria-labelledby="tab-@branch">
-                    @* Display deadlines for the branch *@
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+                var branchActive = branchGroup.Key == Model.First().BranchName ? "show active" : "";
+                <div class="tab-pane fade @branchActive" id="branch-@branchGroup.Key" role="tabpanel">
+                    <table class="table table-hover table-bordered">
+                        <thead>
                             <tr>
                                 <th>Отчет</th>
                                 <th>Срок сдачи</th>
@@ -36,7 +95,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model.Where(m => m.BranchId == branch))
+                            @foreach (var item in branchGroup)
                             {
                                 <tr>
                                     <td>@item.TemplateName</td>
@@ -48,7 +107,7 @@
                                         }
                                         else if (item.Status == "NeedsCorrection")
                                         {
-                                            <span class="badge bg-warning">Необходима корректировка</span>
+                                            <span class="badge bg-warning text-dark">Необходима корректировка</span>
                                         }
                                         else if (item.Status == "Reviewed")
                                         {
@@ -56,34 +115,61 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning">Черновик</span>
+                                            <span class="badge bg-light text-dark">Черновик</span>
                                         }
                                     </td>
-                                    <td>@item.Comment</td>
-                                    <td class="text-center">
-                                        @if (item.Status == "InProgress" || item.Status == "NeedsCorrection")
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Comment))
                                         {
-                                            <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data">
+                                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#commentModal-@item.ReportId">
+                                                Комментарий
+                                            </button>
+
+                                            <!-- Модальное окно -->
+                                            <div class="modal fade" id="commentModal-@item.ReportId" tabindex="-1" aria-labelledby="commentModalLabel-@item.ReportId" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="commentModalLabel-@item.ReportId">Комментарий</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            @item.Comment
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
+                                        {
+                                            <form asp-action="ReloadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
+                                                <input type="hidden" name="reportId" value="@item.ReportId" />
+                                                <input type="file" name="file" class="form-control form-control-sm mb-2" required />
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-arrow-repeat"></i> Перезагрузить
+                                                </button>
+                                            </form>
+                                            <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i> Удалить
+                                            </a>
+                                            <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">
+                                                Просмотр
+                                            </a>
+                                        }
+                                        else if (item.Status == "InProgress")
+                                        {
+                                            <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
                                                 <input type="hidden" name="templateId" value="@item.TemplateId" />
                                                 <input type="file" name="file" class="form-control form-control-sm mb-2" required />
                                                 <button type="submit" class="btn btn-sm btn-primary">
                                                     <i class="bi bi-upload"></i> Загрузить
                                                 </button>
                                             </form>
-                                            
-                                        }
-                                        else if (item.Status == "NeedsCorrection")
-                                        {
-                                            <a href="@Url.Action("Reload", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-success">
-                                                <i class="bi bi-arrow-repeat"></i> Перезагрузить
-                                            </a>
-                                            <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
-                                                <i class="bi bi-trash"></i> Удалить
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">Просмотр</a>
                                         }
                                     </td>
                                 </tr>
@@ -96,9 +182,8 @@
     }
     else
     {
-        @* Display deadlines for the branch user *@
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+        <table class="table table-hover table-bordered mt-3">
+            <thead>
                 <tr>
                     <th>Отчет</th>
                     <th>Срок сдачи</th>
@@ -120,7 +205,7 @@
                             }
                             else if (item.Status == "NeedsCorrection")
                             {
-                                <span class="badge bg-warning">Необходима корректировка</span>
+                                <span class="badge bg-warning text-dark">Необходима корректировка</span>
                             }
                             else if (item.Status == "Reviewed")
                             {
@@ -128,32 +213,33 @@
                             }
                             else
                             {
-                                <span class="badge bg-warning">Черновик</span>
+                                <span class="badge bg-light text-dark">Черновик</span>
                             }
                         </td>
                         <td>@item.Comment</td>
                         <td class="text-center">
-                            @if (item.Status == "Draft" )
+                            @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
                             {
-                                <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data">
+
+                                    <a href="@Url.Action("Reload", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-success">
+                                        <i class="bi bi-arrow-repeat"></i> Перезагрузить
+                                    </a>
+                                    <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i> Удалить
+                                    </a>
+                                <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">
+                                    Просмотр
+                                </a>
+                            }
+                            else if (item.Status == "InProgress")
+                            {
+                                <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
                                     <input type="hidden" name="templateId" value="@item.TemplateId" />
                                     <input type="file" name="file" class="form-control form-control-sm mb-2" required />
                                     <button type="submit" class="btn btn-sm btn-primary">
                                         <i class="bi bi-upload"></i> Загрузить
                                     </button>
                                 </form>
-
-                            }
-                            else if (item.Status == "NeedsCorrection")
-                            {
-                                <a href="@Url.Action("Reload", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-success">
-                                    <i class="bi bi-arrow-repeat"></i> Перезагрузить
-                                </a>
-                                <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i> Удалить
-                                </a>
-
-                                <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">Просмотр</a>
                             }
                         </td>
                     </tr>
@@ -162,4 +248,3 @@
         </table>
     }
 </div>
-

@@ -292,7 +292,8 @@ namespace Core.Services
                     ReportId = deadline.ReportId,
                     Status = deadline.Status.ToString(),
                     Comment=deadline.Comment,
-                    ReportType=deadline.Template.Type.ToString()
+                    ReportType=deadline.Template.Type.ToString(),
+                    BranchId=deadline.BranchId
                     
                 });
             }

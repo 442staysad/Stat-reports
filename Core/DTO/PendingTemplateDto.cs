@@ -17,5 +17,6 @@ namespace Core.DTO
         public string? Comment { get; set; }
         public int? ReportId { get; set; } // ID загруженного отчета (если есть)
         public string ReportType { get; set; }
+        public int? BranchId { get; internal set; }
     }
 }

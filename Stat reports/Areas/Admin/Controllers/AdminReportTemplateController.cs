@@ -49,6 +49,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 Description = model.Description,
                 FilePath = filePath,
                 
+                
             };
 
             // Создание шаблона в базе данных
