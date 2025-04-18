@@ -59,7 +59,7 @@
 <div class="main-container">
     <h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-    @if (isAdminOrHeadOffice)
+    @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
     {
         <ul class="nav nav-tabs" id="branchTabs" role="tablist">
             @foreach (var branchName in Model.Select(m => m.BranchName).Distinct())
@@ -78,6 +78,27 @@
                 </li>
             }
         </ul>
+    }
+    else
+    {
+        <ul class="nav nav-tabs" id="branchTabs" role="tablist">
+            @foreach (var branchName in Model.Where(m => m.BranchId == branchId).Select(m => m.BranchName).Distinct())
+            {
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active"
+                            id="tab-@branchName"
+                            data-bs-toggle="tab"
+                            data-bs-target="#branch-@branchName"
+                            type="button"
+                            role="tab"
+                            aria-controls="branch-@branchName"
+                            aria-selected="true">
+                        @branchName
+                    </button>
+                </li>
+            }
+        </ul>
+    }
 
         <div class="tab-content mt-3" id="branchTabsContent">
             @foreach (var branchGroup in Model.GroupBy(m => m.BranchName))
@@ -154,15 +175,17 @@
                                                     <i class="bi bi-arrow-repeat"></i> Перезагрузить
                                                 </button>
                                             </form>
-                                            <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
-                                                <i class="bi bi-trash"></i> Удалить
-                                            </a>
+
                                             <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">
                                                 Просмотр
+                                            </a>
+                                            <a asp-action="DownloadReport" asp-route-reportname="@item.TemplateName" asp-route-reportId="@item.ReportId" class="btn btn-sm btn-primary">
+                                                ⬇ Скачать
                                             </a>
                                         }
                                         else if (item.Status == "InProgress")
                                         {
+
                                             <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
                                                 <input type="hidden" name="templateId" value="@item.TemplateId" />
                                                 <input type="file" name="file" class="form-control form-control-sm mb-2" required />
@@ -179,72 +202,5 @@
                 </div>
             }
         </div>
-    }
-    else
-    {
-        <table class="table table-hover table-bordered mt-3">
-            <thead>
-                <tr>
-                    <th>Отчет</th>
-                    <th>Срок сдачи</th>
-                    <th>Статус</th>
-                    <th>Примечание</th>
-                    <th class="text-center">Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Where(m => m.BranchId == branchId))
-                {
-                    <tr>
-                        <td>@item.TemplateName</td>
-                        <td>@item.Deadline.ToString("dd.MM.yyyy")</td>
-                        <td>
-                            @if (item.Status == "InProgress")
-                            {
-                                <span class="badge bg-secondary">В работе</span>
-                            }
-                            else if (item.Status == "NeedsCorrection")
-                            {
-                                <span class="badge bg-warning text-dark">Необходима корректировка</span>
-                            }
-                            else if (item.Status == "Reviewed")
-                            {
-                                <span class="badge bg-success">Принято</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-light text-dark">Черновик</span>
-                            }
-                        </td>
-                        <td>@item.Comment</td>
-                        <td class="text-center">
-                            @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
-                            {
-
-                                    <a href="@Url.Action("Reload", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-success">
-                                        <i class="bi bi-arrow-repeat"></i> Перезагрузить
-                                    </a>
-                                    <a href="@Url.Action("Delete", "ReportMvc", new { reportId = item.ReportId })" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i> Удалить
-                                    </a>
-                                <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">
-                                    Просмотр
-                                </a>
-                            }
-                            else if (item.Status == "InProgress")
-                            {
-                                <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
-                                    <input type="hidden" name="templateId" value="@item.TemplateId" />
-                                    <input type="file" name="file" class="form-control form-control-sm mb-2" required />
-                                    <button type="submit" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-upload"></i> Загрузить
-                                    </button>
-                                </form>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
+    
 </div>

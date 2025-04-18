@@ -168,7 +168,7 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> DownloadReport(int reportId, string reportname)
         {
             var fileBytes = await _reportService.GetReportFileAsync(reportId);
-            return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}");
+            return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}.xls");
         }
 
         public async Task<IActionResult> ReportArchive(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)

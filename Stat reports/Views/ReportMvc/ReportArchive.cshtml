@@ -88,7 +88,7 @@
                         <td>@report.Name</td>
                         <td>@Model.Templates.FirstOrDefault(t => t.Id == report.TemplateId)?.Name</td>
                         <td>@Model.Branches.FirstOrDefault(b => b.Id == report.BranchId)?.Name</td>
-                        <td>@report.SubmissionDate.ToString("dd.MM.yyyy")</td>
+                        <td>@report.Period.ToString("dd.MM.yyyy")</td>
                         <td>@report.Status</td>
                         <td>@report.Comment</td>
                         <td>
