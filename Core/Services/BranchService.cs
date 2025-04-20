@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.DTO;
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -48,10 +49,23 @@ namespace Core.Services
         }
 
 
-        public async Task<Branch> UpdateBranchAsync(Branch branch)
+        public async Task<Branch> UpdateBranchAsync(BranchProfileDto dto)
         {
-            await _branchRepository.DeleteAsync(branch);
-            return branch;
+            var branch = await _branchRepository.FindAsync(b=>b.Id==dto.Id) ?? throw new Exception("Филиал не найден.");
+            branch.GoverningName = dto.GoverningName;
+            branch.HeadName = dto.HeadName;
+            branch.Name = dto.Name;
+            branch.Shortname = dto.Shortname;
+            branch.UNP = dto.UNP;
+            branch.OKPO = dto.OKPO;
+            branch.OKYLP = dto.OKYLP;
+            branch.Region = dto.Region;
+            branch.Address = dto.Address;
+            branch.Email = dto.Email;
+            branch.Supervisor = dto.Supervisor;
+            branch.ChiefAccountant = dto.ChiefAccountant;
+
+            return await _branchRepository.UpdateAsync(branch);
         }
     }
 }

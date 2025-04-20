@@ -4,6 +4,7 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Services;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,16 +19,19 @@ namespace Stat_reports.Controllers
         private readonly IDeadlineService _deadlineService;
         private readonly IBranchService _branchService;
         private readonly IReportTemplateService _reportTemplateService;
+        private readonly IFileService _fileService;
 
         public ReportMvcController(IReportService reportService, 
             IDeadlineService deadlineService,
             IBranchService branchService,
-            IReportTemplateService reportTemplateService)
+            IReportTemplateService reportTemplateService,
+            IFileService fileService)
         {
             _reportService = reportService;
             _deadlineService = deadlineService;
             _branchService = branchService;
             _reportTemplateService = reportTemplateService;
+            _fileService = fileService;
         }
 
         public async Task<IActionResult> Index()
@@ -106,6 +110,73 @@ namespace Stat_reports.Controllers
             await _reportService.AddReportCommentAsync(reportId, comment);
             //await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
             return RedirectToAction(nameof(WorkingReports));
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        public IActionResult CreateTemplate()
+        {
+            if (!User.IsInRole("Admin") && !User.IsInRole("PEB") && !User.IsInRole("OBUnF"))
+                return Forbid();
+
+            ViewBag.AllowedTypes = GetAllowedReportTypes();
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        public async Task<IActionResult> CreateTemplate(CreateTemplateViewModel model, IFormFile file)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.AllowedTypes = GetAllowedReportTypes();
+                return View(model);
+            }
+
+            if (!GetAllowedReportTypes().Contains(model.Type))
+            {
+                return Forbid();
+            }
+
+            string filePath = null;
+            if (file != null && file.Length > 0)
+            {
+                filePath = await _fileService.SaveFileAsync(file, "Templates");
+            }
+
+            var template = new ReportTemplate
+            {
+                Name = model.Name,
+                Description = model.Description,
+                FilePath = filePath, // сюда кладем путь к загруженному файлу
+                Type = model.Type,
+                DeadlineType = model.DeadlineType
+            };
+
+            await _reportTemplateService.CreateReportTemplateAsync(template, model.DeadlineType, model.FixedDay, model.ReportDate);
+
+            return RedirectToAction("WorkingReports");
+        }
+
+        private List<ReportType> GetAllowedReportTypes()
+        {
+            var types = new List<ReportType>();
+
+            if (User.IsInRole("Admin"))
+            {
+                types.Add(ReportType.Plan);
+                types.Add(ReportType.Accountant);
+            }
+            else if (User.IsInRole("PEB"))
+            {
+                types.Add(ReportType.Plan);
+            }
+            else if (User.IsInRole("OBUnF"))
+            {
+                types.Add(ReportType.Accountant);
+            }
+
+            return types;
         }
 
         [HttpPost]

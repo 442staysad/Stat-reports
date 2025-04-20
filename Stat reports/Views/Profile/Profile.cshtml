@@ -1,0 +1,121 @@
+﻿@model Stat_reports.ViewModels.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "Профиль пользователя";
+}
+
+@section Styles {
+    <style>
+        body {
+            background: linear-gradient(to right, #003366, #0066cc);
+            color: white;
+            min-height: 100vh;
+            padding-top: 40px;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 1000px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .form-control {
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            border-bottom: 2px solid #fff;
+            margin-top: 20px;
+            padding-bottom: 5px;
+            font-size: 1.2rem;
+        }
+
+        .btn-save {
+            background-color: #ffcc00;
+            color: #003366;
+            border: none;
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="main-container">
+    <h2 class="text-center mb-4">@ViewData["Title"]</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <form method="post">
+        <div class="section-title">👤 Данные пользователя</div>
+
+        <input type="hidden" asp-for="UserId" />
+        <div class="row">
+            <div class="col-md-6">
+                <label>ФИО</label>
+                <input asp-for="FullName" class="form-control" />
+                <label>Телефон</label>
+                <input asp-for="Number" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label>Email</label>
+                <input asp-for="Email" class="form-control" />
+                <label>Должность</label>
+                <input asp-for="Position" class="form-control" />
+            </div>
+        </div>
+
+        <div class="section-title">🏢 Данные филиала</div>
+
+        <input type="hidden" asp-for="BranchId" />
+        <div class="row">
+            <div class="col-md-6">
+                <label>Название</label>
+                <input asp-for="Name" class="form-control" />
+                <label>Краткое название</label>
+                <input asp-for="Shortname" class="form-control" />
+                <label>Регион</label>
+                <input asp-for="Region" class="form-control" />
+                <label>Адрес</label>
+                <input asp-for="Address" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label>УНП</label>
+                <input asp-for="UNP" class="form-control" />
+                <label>ОКПО</label>
+                <input asp-for="OKPO" class="form-control" />
+                <label>ОКЮЛП</label>
+                <input asp-for="OKYLP" class="form-control" />
+                <label>Email филиала</label>
+                <input asp-for="BranchEmail" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <label>Подчинение</label>
+                <input asp-for="GoverningName" class="form-control" />
+                <label>Руководитель</label>
+                <input asp-for="HeadName" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label>Куратор</label>
+                <input asp-for="Supervisor" class="form-control" />
+                <label>Главный бухгалтер</label>
+                <input asp-for="ChiefAccountant" class="form-control" />
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-save px-4 py-2">💾 Сохранить</button>
+        </div>
+    </form>
+</div>

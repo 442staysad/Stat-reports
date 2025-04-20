@@ -62,11 +62,25 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
-//  Применение миграций при запуске
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate(); 
+
+    // Если БД ещё не создана — создаём с миграциями
+    if (dbContext.Database.GetPendingMigrations().Any())
+    {
+        dbContext.Database.Migrate();
+    }
+
+    // Проверка: есть ли данные в ключевых таблицах
+    var hasRoles = await dbContext.SystemRoles.AnyAsync();
+    var hasUsers = await dbContext.Users.AnyAsync();
+    var hasBranches = await dbContext.Branches.AnyAsync();
+
+    if (!hasRoles || !hasUsers || !hasBranches)
+    {
+        await DbSeeder.SeedAsync(scope.ServiceProvider);
+    }
 }
 
 // Настройка Middleware

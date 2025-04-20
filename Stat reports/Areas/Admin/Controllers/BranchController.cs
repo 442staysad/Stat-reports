@@ -28,7 +28,7 @@ namespace Stat_reports.Areas.Admin.Controllers
         public async Task<IActionResult> Create(BranchModel branchmodel)
         {
 
-                Branch branch = new Branch
+                Branch branch = new()
                 {
                     Name = branchmodel.Name,
                     Address = branchmodel.Address,
@@ -56,7 +56,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 return NotFound();
             return View(branch);
         }
-
+        /*
         [HttpPost]
         public async Task<IActionResult> Edit(int id, Branch branch)
         {
@@ -69,7 +69,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(branch);
-        }
+        }*/
 
         public async Task<IActionResult> Delete(int id)
         {

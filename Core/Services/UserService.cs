@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using Core.DTO;
+using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
@@ -37,10 +38,15 @@ namespace Core.Services
             return user;
         }
 
-        public async Task<User> UpdateUserAsync(User user)
+        public async Task<User> UpdateUserAsync(UserProfileDto dto)
         {
-            await _userRepository.DeleteAsync(user);
-            return user;
+            var user = await _userRepository.FindAsync(b => b.Id == dto.Id) ?? throw new Exception("Пользователь не найден.");
+            user.FullName = dto.FullName;
+            user.Number = dto.Number;
+            user.Email = dto.Email;
+            user.Position = dto.Position;
+
+            return await _userRepository.UpdateAsync(user);
         }
 
         public async Task<bool> DeleteUserAsync(int id)

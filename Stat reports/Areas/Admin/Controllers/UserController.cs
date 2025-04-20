@@ -34,7 +34,7 @@ namespace Stat_reports.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UserModel userm)
         {
-            User user = new User
+            User user = new()
             {
                 UserName = userm.UserName,
                 FullName = userm.FullName,
@@ -62,7 +62,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 return NotFound();
             return View(user);
         }
-
+        /*
         [HttpPost]
         public async Task<IActionResult> Edit(int id, User user)
         {
@@ -75,7 +75,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(user);
-        }
+        }*/
 
         public async Task<IActionResult> Delete(int id)
         {

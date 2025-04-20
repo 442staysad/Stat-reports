@@ -58,7 +58,10 @@
 
 <div class="main-container">
     <h2 class="text-center mb-4">@ViewData["Title"]</h2>
-
+    @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
+    {
+        <a asp-action="CreateTemplate" asp-controller="ReportMvc" class="btn btn-warning mb-3">➕ Добавить отчет</a>
+    }
     @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
     {
         <ul class="nav nav-tabs" id="branchTabs" role="tablist">

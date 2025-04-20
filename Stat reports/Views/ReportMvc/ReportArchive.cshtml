@@ -4,10 +4,59 @@
     ViewData["Title"] = "Архив отчетов";
 }
 
-<div class="card shadow-sm rounded-4 p-4 bg-white">
-    <h2 class="mb-4 text-primary">📦 Архив отчетов</h2>
+@section Styles {
+    <style>
+        body {
+            background: linear-gradient(to right, #003366, #0066cc);
+            color: white;
+            min-height: 100vh;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
 
-    <form method="get" asp-action="ReportArchive" class="row g-3">
+        .archive-container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 1400px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .table thead {
+            background-color: #002244 !important;
+            color: white;
+        }
+
+        .table tbody {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #000;
+        }
+
+        .form-label {
+            color: #fff;
+        }
+
+        .btn-outline-primary {
+            border-color: #ffcc00;
+            color: #ffcc00;
+        }
+
+            .btn-outline-primary:hover {
+                background-color: #ffcc00;
+                color: #003366;
+            }
+
+        .badge {
+            font-size: 0.9rem;
+        }
+    </style>
+}
+
+<div class="archive-container">
+    <h2 class="text-center mb-4">📦 @ViewData["Title"]</h2>
+
+    <form method="get" asp-action="ReportArchive" class="row g-3 mb-4">
         <div class="col-md-4">
             <label for="name" class="form-label">Название отчета</label>
             <input type="text" class="form-control" id="name" name="name" value="@Model.Filter.Name" placeholder="Введите название" />
@@ -66,17 +115,14 @@
         </div>
     </form>
 
-    <hr class="my-4" />
-
     <div class="table-responsive">
         <table class="table table-hover table-bordered align-middle">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th>Название</th>
                     <th>Тип</th>
                     <th>Филиал</th>
                     <th>Дата загрузки</th>
-                    <th>Статус</th>
                     <th>Комментарий</th>
                     <th>Действия</th>
                 </tr>
@@ -88,16 +134,44 @@
                         <td>@report.Name</td>
                         <td>@Model.Templates.FirstOrDefault(t => t.Id == report.TemplateId)?.Name</td>
                         <td>@Model.Branches.FirstOrDefault(b => b.Id == report.BranchId)?.Name</td>
-                        <td>@report.Period.ToString("dd.MM.yyyy")</td>
-                        <td>@report.Status</td>
-                        <td>@report.Comment</td>
+                        <td>@report.Period.ToString("dd.MM.yyyy")</td> 
                         <td>
-                            <a asp-action="DownloadReport" asp-route-reportname="@report.Name" asp-route-reportId="@report.Id" class="btn btn-sm btn-primary">
+                            @if (!string.IsNullOrEmpty(report.Comment))
+                            {
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#commentModal-@report.Id">
+                                    Комментарий
+                                </button>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="commentModal-@report.Id" tabindex="-1" aria-labelledby="modalLabel-@report.Id" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalLabel-@report.Id">Комментарий</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                @report.Comment
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="DownloadReport"
+                               asp-route-reportname="@report.Name"
+                               asp-route-reportId="@report.Id"
+                               class="btn btn-sm btn-primary">
                                 ⬇ Скачать
                             </a>
                         </td>
                     </tr>
                 }
+
                 @if (!Model.Reports.Any())
                 {
                     <tr>

@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using Core.DTO;
+using Core.Entities;
 
 namespace Core.Interfaces
 {
@@ -8,7 +9,7 @@ namespace Core.Interfaces
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<User> GetUserByIdAsync(int id);
         Task<User> CreateUserAsync(User user);
-        Task<User> UpdateUserAsync(User user);
+        Task<User> UpdateUserAsync(UserProfileDto dto);
         Task<bool> DeleteUserAsync(int id);
         Task<IEnumerable<User>> GetUsersByBranchIdAsync(int branchId);
 
