@@ -23,11 +23,25 @@ namespace Core.Services
         }
 
 
-        public async Task<Branch> CreateBranchAsync(Branch branch)
+        public async Task<Branch> CreateBranchAsync(BranchDto dto)
         {
-            branch.PasswordHash = _branchpasswordHasher.HashPassword(null, branch.PasswordHash);
-            await _branchRepository.AddAsync(branch);
-            return branch;
+            var entity = new Branch
+            {
+                Name = dto.Name,
+                Shortname = dto.Shortname,
+                UNP = dto.UNP,
+                OKPO = dto.OKPO,
+                OKYLP = dto.OKYLP,
+                Region = dto.Region,
+                Address = dto.Address,
+                Email = dto.Email,
+                GoverningName = dto.GoverningName,
+                HeadName = dto.HeadName,
+                Supervisor = dto.Supervisor,
+                ChiefAccountant = dto.ChiefAccountant
+            };
+            entity.PasswordHash = _branchpasswordHasher.HashPassword(entity, dto.Password);
+            return await _branchRepository.AddAsync(entity);
         }
 
         public async Task<bool> DeleteBranchAsync(int id)
@@ -36,6 +50,26 @@ namespace Core.Services
             if (branch == null) return false;
             await _branchRepository.DeleteAsync(branch);
             return true;
+        }
+
+        public async Task<IEnumerable<BranchDto>> GetAllBranchesDtosAsync()
+        {
+            return (await _branchRepository.GetAllAsync()).Select(b => new BranchDto
+            {
+                Name = b.Name,
+                Shortname = b.Shortname,
+                UNP = b.UNP!,
+                OKPO = b.OKPO,
+                OKYLP = b.OKYLP,
+                Region = b.Region,
+                Address = b.Address,
+                Email = b.Email,
+                GoverningName = b.GoverningName,
+                HeadName = b.HeadName,
+                Supervisor = b.Supervisor,
+                ChiefAccountant = b.ChiefAccountant,
+                Password = "" // not returned
+            });
         }
 
         public async Task<IEnumerable<Branch>> GetAllBranchesAsync()

@@ -10,9 +10,10 @@ namespace Core.Interfaces
 {
     public interface IBranchService
     {
+        Task<IEnumerable<BranchDto>> GetAllBranchesDtosAsync();
         Task<IEnumerable<Branch>> GetAllBranchesAsync();
         Task<Branch> GetBranchByIdAsync(int? id);
-        Task<Branch> CreateBranchAsync(Branch branch);
+        Task<Branch> CreateBranchAsync(BranchDto dto);
         Task<Branch> UpdateBranchAsync(BranchProfileDto dto);
         Task<bool> DeleteBranchAsync(int id);
     }

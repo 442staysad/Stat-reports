@@ -260,41 +260,31 @@ namespace Core.Services
 
         public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync(int? branchId)
         {
-            var today = DateTime.UtcNow;
+            var query = _deadlineRepository.GetAll(q => q.Include(t => t.Template));
 
-            var deadlines = await _deadlineRepository
-                .GetAll(q => q.Include(t => t.Template))
-                .Where(d => d.BranchId == branchId) // Фильтрация по филиалу
-                .ToListAsync();
+            if (branchId.HasValue)
+                query = query.Where(d => d.BranchId == branchId.Value);
+
+            var deadlines = await query.ToListAsync();
 
             var pendingTemplates = new List<PendingTemplateDto>();
 
             foreach (var deadline in deadlines)
             {
-                if (deadline == null)
-                {
-                    Console.WriteLine("Ошибка: template == null");
+                if (deadline?.Template == null)
                     continue;
-                }
-
-                if (deadline.Template == null)
-                {
-                    Console.WriteLine($"Ошибка: template.Template == null (TemplateId: {deadline.ReportTemplateId})");
-                }
-
 
                 pendingTemplates.Add(new PendingTemplateDto
                 {
-                    Id=deadline.Id,
+                    Id = deadline.Id,
                     TemplateId = deadline.ReportTemplateId,
                     TemplateName = deadline.Template?.Name ?? "Неизвестный шаблон",
                     Deadline = deadline.DeadlineDate,
                     ReportId = deadline.ReportId,
                     Status = deadline.Status.ToString(),
-                    Comment=deadline.Comment,
-                    ReportType=deadline.Template.Type.ToString(),
-                    BranchId=deadline.BranchId
-                    
+                    Comment = deadline.Comment,
+                    ReportType = deadline.Template.Type.ToString(),
+                    BranchId = deadline.BranchId
                 });
             }
 

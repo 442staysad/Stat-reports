@@ -2,6 +2,7 @@
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace Core.Services
@@ -21,6 +22,23 @@ namespace Core.Services
         {
             return await _userRepository.GetAllAsync();
         }
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync(int? branchId = null)
+        {
+            var query = (await _userRepository.GetAll(u=>u.Include(r=>r.Role)).ToListAsync())
+                        .Where(u => !branchId.HasValue || u.BranchId == branchId);
+            return query.Select(u => new UserDto
+            {
+                UserName = u.UserName,
+                FullName = u.FullName,
+                Number = u.Number,
+                Email = u.Email,
+                Position = u.Position,
+                RoleId = u.RoleId,
+                RoleName = u.Role?.RoleName,
+                BranchId = u.BranchId!.Value,
+                Password = ""
+            });
+        }
 
         public async Task<User> GetUserByIdAsync(int id)
         {
@@ -31,11 +49,20 @@ namespace Core.Services
             return await _userRepository.FindAllAsync(u => u.BranchId == branchId);
         }
 
-        public async Task<User> CreateUserAsync(User user)
+        public async Task<User> CreateUserAsync(UserDto dto)
         {
-            user.PasswordHash = _userpasswordHasher.HashPassword(user,user.PasswordHash);
-            await _userRepository.AddAsync(user);
-            return user;
+            var entity = new User
+            {
+                UserName = dto.UserName,
+                FullName = dto.FullName,
+                Number = dto.Number,
+                Email = dto.Email,
+                Position = dto.Position,
+                RoleId = dto.RoleId,
+                BranchId = dto.BranchId
+            };
+            entity.PasswordHash = _userpasswordHasher.HashPassword(entity, dto.Password);
+            return await _userRepository.AddAsync(entity);
         }
 
         public async Task<User> UpdateUserAsync(UserProfileDto dto)

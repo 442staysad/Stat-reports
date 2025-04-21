@@ -1,0 +1,59 @@
+﻿@model IEnumerable<UserDto>
+
+@{
+    ViewData["Title"] = "Пользователи";
+}
+
+@section Styles {
+    <style>
+        .user-table {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-radius: 10px;
+        }
+
+            .user-table th, .user-table td {
+                padding: 10px;
+                border-bottom: 1px solid rgba(255,255,255,0.2);
+            }
+
+        .btn-add {
+            background-color: #ffcc00;
+            color: #003366;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+    </style>
+}
+
+<div class="main-container">
+    <h2>Пользователи</h2>
+
+    <a asp-action="Create" class="btn btn-add">➕ Добавить пользователя</a>
+
+    <table class="table user-table">
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>ФИО</th>
+                <th>Роль</th>
+                <th>Телефон</th>
+                <th>Онлайн</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.FullName</td>
+                    <td>@user.RoleName</td> <!-- позже маппим на RoleName -->
+                    <td>@user.Number</td>
+                    <td><span class="badge bg-secondary">⏳ offline</span></td> <!-- пока статично -->
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

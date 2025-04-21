@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
+using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace Core.Services
 {
@@ -64,9 +65,15 @@ namespace Core.Services
                     Template = template,
                     DeadlineType = deadlineType,
                     DeadlineDate = deadlineDate,
-                    IsClosed = false
+                    IsClosed = false,
                 };
-
+                switch (deadlineType.ToString())
+                {
+                    case "Monthly" : deadline.Period = ReportDate.AddMonths(1); break;
+                    case "Quarterly" : deadline.Period = ReportDate.AddMonths(3); break;
+                    case "HalfYearly": deadline.Period = ReportDate.AddMonths(6); break;
+                    case "Yearly": deadline.Period = ReportDate.AddYears(1); break;
+                }
                 // Сохранение дедлайна в базе данных
                 await _DeadlineRepository.AddAsync(deadline);
             }

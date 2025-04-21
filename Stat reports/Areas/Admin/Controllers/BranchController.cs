@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using Core.DTO;
+using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,7 @@ namespace Stat_reports.Areas.Admin.Controllers
         public async Task<IActionResult> Create(BranchModel branchmodel)
         {
 
-                Branch branch = new()
+                BranchDto branch = new()
                 {
                     Name = branchmodel.Name,
                     Address = branchmodel.Address,
@@ -42,7 +43,7 @@ namespace Stat_reports.Areas.Admin.Controllers
                     Shortname = branchmodel.Shortname,
                     Supervisor = branchmodel.Supervisor,
                     UNP = branchmodel.UNP,
-                    PasswordHash = branchmodel.PasswordHash
+                    Password = branchmodel.PasswordHash
                 };
                 await _branchService.CreateBranchAsync(branch);
                 return RedirectToAction(nameof(Index));

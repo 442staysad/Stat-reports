@@ -1,25 +1,87 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
     var userId = Context.Session.GetInt32("UserId") ?? 0;
     var unreadCount = (await _notificationService.GetUserNotificationsAsync(userId)).Count();
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    bool IsActive(string controller, string action = null) =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+        && (string.IsNullOrEmpty(action) || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase));
 }
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Stat_reports</title>
+    <title>@ViewData["Title"] - Статотчетность</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Stat_reports.styles.css" asp-append-version="true" />
-    @RenderSection("Styles", required: false) <!-- Добавлено для рендеринга секции -->
+
+    <style>
+        body {
+            background: linear-gradient(to right, #003366, #0066cc);
+            color: white;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        .navbar {
+            background-color: #002244 !important;
+        }
+
+        .navbar-brand,
+        .nav-link,
+        .dropdown-item {
+            color: white !important;
+        }
+
+            .nav-link.active,
+            .dropdown-item.active {
+                background-color: #ffcc00 !important;
+                color: #003366 !important;
+            }
+
+        .main-content {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: auto;
+            max-width: 1200px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        footer {
+            background-color: #002244;
+            color: white;
+            padding: 20px 0;
+        }
+
+        .badge {
+            font-size: 0.85rem;
+        }
+
+        .dropdown-menu {
+            background-color: #003366;
+        }
+
+        .dropdown-item:hover {
+            background-color: #ffcc00;
+            color: #003366;
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
 </head>
 
-<body class="bg-light">
+<body>
     <header>
-        <!-- Навигация -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg fixed-top navbar-dark">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">📊 Stat_reports</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">📊 Статотчетность</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -28,24 +90,26 @@
                         @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link active" asp-area="" asp-controller="Home" asp-action="Index">📈 Дашборд</a>
+                                <a class="nav-link @(IsActive("Home", "Index") ? "active" : "")" asp-controller="Home" asp-action="Index">📈 Дашборд</a>
                             </li>
                         }
+
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle @(currentController == "ReportMvc" || currentController == "SummaryReport" ? "active" : "")" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
                                 📋 Отчеты
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="ReportMvc" asp-action="WorkingReports">Отчеты в работе</a></li>
-                                <li><a class="dropdown-item" asp-controller="ReportMvc" asp-action="ReportArchive">Архив отчетов</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item @(IsActive("ReportMvc", "WorkingReports") ? "active" : "")" asp-controller="ReportMvc" asp-action="WorkingReports">Отчеты в работе</a></li>
+                                <li><a class="dropdown-item @(IsActive("ReportMvc", "ReportArchive") ? "active" : "")" asp-controller="ReportMvc" asp-action="ReportArchive">Архив отчетов</a></li>
                                 @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
                                 {
-                                    <li><a class="dropdown-item" asp-controller="SummaryReport" asp-action="Summary">Сводный отчет</a></li>
+                                    <li><a class="dropdown-item @(IsActive("SummaryReport", "Summary") ? "active" : "")" asp-controller="SummaryReport" asp-action="Summary">Сводный отчет</a></li>
                                 }
                             </ul>
                         </li>
+
                         <li class="nav-item position-relative">
-                            <a class="nav-link" asp-controller="Notification" asp-action="Index">
+                            <a class="nav-link @(IsActive("Notification", "Index") ? "active" : "")" asp-controller="Notification" asp-action="Index">
                                 🔔 Уведомления
                                 @if (unreadCount > 0)
                                 {
@@ -55,24 +119,48 @@
                                 }
                             </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Index", "Profile")">👤 Аккаунт</a>
+                            <a class="nav-link @(IsActive("Profile", "Index") ? "active" : "")" href="@Url.Action("Index", "Profile")">👤 Аккаунт</a>
                         </li>
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle @(currentController == "Branch" || currentController == "User" ? "active" : "")" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                    ⚙️ Администрирование
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item @(IsActive("Branch", "Index") ? "active" : "")" asp-controller="Branch" asp-action="Index">Филиалы</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item @(IsActive("User", "Index") ? "active" : "")" asp-controller="User" asp-action="Index">Все пользователи</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(IsActive("User", "Index") ? "active" : "")" asp-controller="User" asp-action="Index">👥 Пользователи филиала</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
 
-    <div class="container mt-4">
+    <div class="main-content mt-4">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted bg-dark text-white">
+    <footer class="footer text-center mt-4">
         <div class="container">
-            &copy; 2025 - Stat_reports - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-white">Privacy</a>
+            &copy; 2025 - Stat_reports - <a asp-controller="Home" asp-action="Privacy" class="text-white text-decoration-underline">Privacy</a>
         </div>
     </footer>
 

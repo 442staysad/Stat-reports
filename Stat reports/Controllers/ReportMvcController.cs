@@ -125,23 +125,19 @@ namespace Stat_reports.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin,PEB,OBUnF")]
-        public async Task<IActionResult> CreateTemplate(CreateTemplateViewModel model, IFormFile file)
-        {
+        public async Task<IActionResult> CreateTemplate(CreateTemplateViewModel model)
+        {/*
             if (!ModelState.IsValid)
             {
                 ViewBag.AllowedTypes = GetAllowedReportTypes();
                 return View(model);
-            }
+            }*/
 
-            if (!GetAllowedReportTypes().Contains(model.Type))
-            {
-                return Forbid();
-            }
-
+            
             string filePath = null;
-            if (file != null && file.Length > 0)
+            if (model.File != null)
             {
-                filePath = await _fileService.SaveFileAsync(file, "Templates");
+                filePath = await _fileService.SaveFileAsync(model.File, "Templates");
             }
 
             var template = new ReportTemplate
@@ -189,16 +185,16 @@ namespace Stat_reports.Controllers
 
         public async Task<IActionResult> WorkingReports()
         {
-            int? branchId = HttpContext.Session.GetInt32("BranchId");
+            int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
 
-            if (branchId == null)
-            {
-                return Unauthorized(); // Если филиал не найден, блокируем доступ
-            }
+            bool isGlobalUser = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF");
 
-            var templates = await _reportService.GetPendingTemplatesAsync(branchId.Value);
+            // Только если не глобальный пользователь — ограничиваем по филиалу
+            int? branchId = isGlobalUser ? null : sessionBranchId;
 
-            var branches = await _branchService.GetAllBranchesAsync(); // Получаем список всех филиалов
+            var templates = await _reportService.GetPendingTemplatesAsync(branchId);
+
+            var branches = await _branchService.GetAllBranchesAsync();
 
             var viewModel = templates.Select(t => new PendingTemplateViewModel
             {
@@ -211,8 +207,7 @@ namespace Stat_reports.Controllers
                 ReportId = t.ReportId,
                 ReportType = t.ReportType,
                 BranchId = (int)t.BranchId,
-                BranchName = branches.FirstOrDefault(b => b.Id == t.BranchId)?.Name 
-                ?? "Неизвестный филиал" // Получаем название филиала
+                BranchName = branches.FirstOrDefault(b => b.Id == t.BranchId)?.Name ?? "Неизвестный филиал"
             }).ToList();
 
             return View(viewModel);

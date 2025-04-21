@@ -23,10 +23,10 @@ namespace Infrastructure.Services
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
 
-            Console.WriteLine($"baseFolder: {baseFolder}, branchName: {branchName}, year: {year}, templateName: {templateName}");
             try
             {
                 string folderPath;
+
                 if (baseFolder == "Reports" && branchName != null && year > 0 && templateName != null)
                 {
                     folderPath = Path.Combine(_rootPath, branchName, year.ToString(), templateName);
@@ -43,14 +43,23 @@ namespace Infrastructure.Services
                 if (!Directory.Exists(folderPath))
                     Directory.CreateDirectory(folderPath);
 
-                string fullPath = Path.Combine(folderPath, file.FileName);
+                // Получаем расширение файла и имя без расширения
+                string originalFileName = Path.GetFileNameWithoutExtension(file.FileName);
+                string fileExtension = Path.GetExtension(file.FileName);
+
+                // Если это "Reports", добавляем branchName_ перед именем файла
+                string fileName = baseFolder == "Reports" && !string.IsNullOrEmpty(branchName)
+                    ? $"{branchName}_{originalFileName}{fileExtension}"
+                    : file.FileName;
+
+                string fullPath = Path.Combine(folderPath, fileName);
 
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                return fullPath; // Сохраняем полный путь файла
+                return fullPath;
             }
             catch (Exception ex)
             {

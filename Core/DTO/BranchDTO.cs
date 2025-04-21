@@ -8,21 +8,20 @@ using Core.Entities;
 
 namespace Core.DTO
 {
-    public class BranchDTO:BaseDTO
+    public class BranchDto:BaseDTO
     {
-        public string? GoverningName { get; set; }
-        public string? HeadName { get; set; }
         public string? Name { get; set; }
         public string? Shortname { get; set; }
-        public string? UNP { get; set; } // Используется для входа филиала
+        public string UNP { get; set; } = null!;
         public string? OKPO { get; set; }
         public string? OKYLP { get; set; }
         public string? Region { get; set; }
         public string? Address { get; set; }
         public string? Email { get; set; }
+        public string? GoverningName { get; set; }
+        public string? HeadName { get; set; }
         public string? Supervisor { get; set; }
         public string? ChiefAccountant { get; set; }
-        public ICollection<User>? Users { get; set; }
-        public ICollection<Report>? Reports { get; set; }
+        public string Password { get; set; } = null!; // plain-text
     }
 }

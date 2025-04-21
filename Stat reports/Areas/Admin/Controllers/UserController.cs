@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using Core.DTO;
+using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,16 +35,16 @@ namespace Stat_reports.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UserModel userm)
         {
-            User user = new()
+            UserDto user = new()
             {
                 UserName = userm.UserName,
                 FullName = userm.FullName,
                 RoleId = (int)userm.Role,
-                BranchId = userm.BranchId,
+                BranchId = (int)userm.BranchId,
                 Email = userm.Email,
                 Number = userm.Number,
                 Position = userm.Position,
-                PasswordHash=userm.PasswordHash,
+                Password=userm.PasswordHash,
                 
             };
             if (ModelState.IsValid)

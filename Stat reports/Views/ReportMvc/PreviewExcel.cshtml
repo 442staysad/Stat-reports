@@ -5,7 +5,17 @@
     bool isAdminOrHeadOffice = true;
     int? branchId = HttpContextAccessor.HttpContext?.Session?.GetInt32("BranchId");
 }
+@section Styles{
 
+        <style>
+        body {
+            background: snow;
+            color: white;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+        </style>
+}
 <h2>Просмотр Excel файла: @Model.ReportName</h2>
 
 @if (isAdminOrHeadOffice)

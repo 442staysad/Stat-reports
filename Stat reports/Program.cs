@@ -1,15 +1,14 @@
 using Core.Entities;
 using Core.Interfaces;
 using Core.Services;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+
 using Infrastructure.Data;
 using Infrastructure.Repository;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.FileProviders;
+
 using Stat_reports.Filters;
 using Stat_reportsnt.Filters;
 
@@ -31,6 +30,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISummaryReportService, SummaryReportService>();
 builder.Services.AddScoped<IDeadlineService, DeadlineService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 builder.Services.AddHostedService<DeadlineNotificationHostedService>();
 
