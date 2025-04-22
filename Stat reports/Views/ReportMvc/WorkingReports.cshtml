@@ -317,7 +317,7 @@
     {
         <div class="d-flex justify-content-end mb-4">
             <a asp-action="CreateTemplate" asp-controller="ReportMvc" class="btn btn-warning">
-                <i class="bi bi-plus-circle"></i> Добавить отчет
+                ➕Добавить отчет
             </a>
         </div>
     }
@@ -337,7 +337,7 @@
                             role="tab"
                             aria-controls="branch-@branch.BranchId"
                             aria-selected="@(i == 0 ? "true" : "false")">
-                        @branch.BranchName
+                        @branch.BranchName 
                     </button>
                 </li>
             }
@@ -373,38 +373,26 @@
                                             <td>
                                                 @if (item.Status == "InProgress")
                                                 {
-                                                    <span class="badge bg-secondary status-badge status-inprogress">
-                                                        <span class="status-icon"></span>
-                                                        В работе
-                                                    </span>
+                                                    <span class="badge bg-secondary">В работе</span>
                                                 }
                                                 else if (item.Status == "NeedsCorrection")
                                                 {
-                                                    <span class="badge bg-warning text-dark status-badge status-needscorrection">
-                                                        <span class="status-icon"></span>
-                                                        Корректировка
-                                                    </span>
+                                                    <span class="badge bg-warning text-dark">Необходима корректировка</span>
                                                 }
                                                 else if (item.Status == "Reviewed")
                                                 {
-                                                    <span class="badge bg-success status-badge status-reviewed">
-                                                        <span class="status-icon"></span>
-                                                        Принято
-                                                    </span>
+                                                    <span class="badge bg-success">Принято</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-light text-dark status-badge status-draft">
-                                                        <span class="status-icon"></span>
-                                                        Черновик
-                                                    </span>
+                                                    <span class="badge bg-light text-dark">Черновик</span>
                                                 }
                                             </td>
                                             <td>
                                                 @if (!string.IsNullOrEmpty(item.Comment))
                                                 {
                                                     <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#commentModal-@item.ReportId">
-                                                        <i class="bi bi-chat-left-text"></i> Комментарий
+                                                        Комментарий
                                                     </button>
 
                                                     <div class="modal fade" id="commentModal-@item.ReportId" tabindex="-1" aria-labelledby="commentModalLabel-@item.ReportId" aria-hidden="true">
@@ -425,7 +413,7 @@
                                                                 </div>
                                                                 <div class="modal-footer">
                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                                        <i class="bi bi-x-circle"></i> Закрыть
+                                                                        Закрыть
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -439,11 +427,11 @@
                                                     {
                                                         @if (item.BranchId == branchId)
                                                         {
-                                                            <form asp-action="ReloadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
-                                                                <input type="hidden" name="reportId" value="@item.ReportId" />
+                                                            <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
+                                                                <input type="hidden" name="templateId" value="@item.TemplateId" />
                                                                 <div class="file-input-wrapper">
                                                                     <label class="file-input-label btn btn-sm btn-success">
-                                                                        <i class="bi bi-arrow-repeat"></i> Перезагрузить
+                                                                        Перезагрузить
                                                                     </label>
                                                                     <input type="file" name="file" class="form-control-file" required onchange="this.form.submit()" />
                                                                 </div>
@@ -462,7 +450,7 @@
                                                             <input type="hidden" name="templateId" value="@item.TemplateId" />
                                                             <div class="file-input-wrapper">
                                                                 <label class="file-input-label btn btn-sm btn-primary">
-                                                                    <i class="bi bi-upload"></i> Загрузить
+                                                                   Загрузить
                                                                 </label>
                                                                 <input type="file" name="file" class="form-control-file" required onchange="this.form.submit()" />
                                                             </div>

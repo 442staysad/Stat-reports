@@ -13,6 +13,7 @@ namespace Core.Interfaces
         Task<User> UpdateUserAsync(UserProfileDto dto);
         Task<bool> DeleteUserAsync(int id);
         Task<IEnumerable<User>> GetUsersByBranchIdAsync(int branchId);
+        Task<IEnumerable<User>> GetUsersByRoleAsync(string role);
 
     }
 }

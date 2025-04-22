@@ -57,7 +57,7 @@
                         case "Plan":
                             <option value="@type">Плановый</option>
                             break;
-                        case "Accounting":
+                        case "Accountant":
                             <option value="@type">Бухгалтерский</option>
                             break;
                     }
@@ -70,7 +70,7 @@
             <select asp-for="DeadlineType" class="form-select">
                 @foreach (var type in Enum.GetValues(typeof(DeadlineType)))
                 {
-                    switch (type)
+                    switch (type.ToString())
                     {
                         case "Monthly":
                             <option value="@type">Месячный</option>

@@ -28,7 +28,8 @@ namespace Core.Services
 
         public async Task<IEnumerable<SubmissionDeadline>> GetAllAsync()
         {
-            return await _deadlineRepository.GetAll(t => t.Include(r => r.Template)).ToListAsync();
+            return await _deadlineRepository.GetAll(t => t.Include(r => r.Template)
+                                                          .Include(b=>b.Branch)).ToListAsync();
         }
         public async Task CheckAndUpdateDeadlineAsync(int templateId)
         {

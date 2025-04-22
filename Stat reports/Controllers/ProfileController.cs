@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Stat_reports.ViewModels;
 using Core.DTO;
+using Microsoft.AspNetCore.Authorization;
+using Stat_reportsnt.Filters;
 
 namespace Stat_reports.Controllers
 {
+    [AuthorizeBranchAndUser]
     public class ProfileController : Controller
     {
         private readonly IUserService _userService;

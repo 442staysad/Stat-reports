@@ -49,6 +49,12 @@ namespace Core.Services
             return await _userRepository.FindAllAsync(u => u.BranchId == branchId);
         }
 
+        public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _userRepository.FindAllAsync(u => u.Role.RoleName == role);
+        }
+
+
         public async Task<User> CreateUserAsync(UserDto dto)
         {
             var entity = new User

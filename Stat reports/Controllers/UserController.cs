@@ -9,6 +9,7 @@ using Stat_reports.ViewModels;
 
 namespace Stat_reports.Controllers
 {
+    [Authorize(Roles = "Admin,PEB,OBUnF,User")]
     public class UserController : Controller
     {
         private readonly IUserService _userService;

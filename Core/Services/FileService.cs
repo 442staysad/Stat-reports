@@ -17,7 +17,7 @@ namespace Infrastructure.Services
             if (!Directory.Exists(_rootPath))
                 Directory.CreateDirectory(_rootPath);
         }
-
+        
         public async Task<string> SaveFileAsync(IFormFile file, string baseFolder, string branchName = null, int year = 0, string templateName = null)
         {
             if (file == null || file.Length == 0)

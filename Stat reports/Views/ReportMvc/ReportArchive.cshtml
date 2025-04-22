@@ -5,77 +5,131 @@
 }
 
 @section Styles {
-    <style>
-        body {
-            background: linear-gradient(to right, #003366, #0066cc);
-            color: white;
-            min-height: 100vh;
-            padding-top: 40px;
-            padding-bottom: 40px;
+<style>
+    body {
+    background: linear-gradient(to right, #003366, #0066cc);
+    color: white;
+    min-height: 100vh;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    }
+
+    .archive-container {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 1400px;
+    margin: auto;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .table thead {
+    background-color: #002244 !important;
+    color: white;
+    }
+
+    .table tbody {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #000;
+    }
+
+    .form-label {
+    color: #fff;
+    }
+
+    .btn-outline-primary {
+    border-color: #ffcc00;
+    color: #ffcc00;
+    }
+
+    .btn-outline-primary:hover {
+    background-color: #ffcc00;
+    color: #003366;
+    }
+
+    .badge {
+    font-size: 0.9rem;
+    }
+
+        .report-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: 2px solid;
         }
 
-        .archive-container {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 1400px;
-            margin: auto;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-        }
-
-        .table thead {
-            background-color: #002244 !important;
-            color: white;
-        }
-
-        .table tbody {
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #000;
-        }
-
-        .form-label {
-            color: #fff;
-        }
-
-        .btn-outline-primary {
-            border-color: #ffcc00;
-            color: #ffcc00;
-        }
-
-            .btn-outline-primary:hover {
-                background-color: #ffcc00;
-                color: #003366;
+            .report-badge.plan {
+                border-color: #007bff; /* синий */
+                color: #007bff;
             }
 
-        .badge {
-            font-size: 0.9rem;
-        }
-    </style>
+            .report-badge.accounting {
+                border-color: #28a745; /* зеленый */
+                color: #28a745;
+            }
+</style>
+}
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const reportTypeSelect = document.getElementById('reportType');
+    const templateSelect = document.getElementById('templateId');
+    const allTemplates = Array.from(templateSelect.options).filter(opt => opt.value !== "");
+
+    function filterTemplatesByType(type) {
+    templateSelect.innerHTML = '<option value="">Все</option>';
+    const filtered = allTemplates.filter(opt => opt.dataset.type === type || type === "");
+    filtered.forEach(opt => templateSelect.appendChild(opt));
+    }
+
+    reportTypeSelect.addEventListener('change', () => {
+    filterTemplatesByType(reportTypeSelect.value);
+    });
+
+    // Инициализировать при загрузке (на случай возврата после фильтрации)
+    filterTemplatesByType(reportTypeSelect.value);
+    });
+</script>
 }
 
 <div class="archive-container">
     <h2 class="text-center mb-4">📦 @ViewData["Title"]</h2>
 
     <form method="get" asp-action="ReportArchive" class="row g-3 mb-4">
-        <div class="col-md-4">
+
+        <div class="col-md-3">
             <label for="name" class="form-label">Название отчета</label>
             <input type="text" class="form-control" id="name" name="name" value="@Model.Filter.Name" placeholder="Введите название" />
         </div>
 
-        <div class="col-md-4">
-            <label for="templateId" class="form-label">Тип отчета</label>
+        <div class="col-md-3">
+            <label for="reportType" class="form-label">Тип отчета</label>
+            <select class="form-select" id="reportType" name="reportType">
+                <option value="">Все</option>
+                <option value="Plan" selected="@(Model.Filter.Type.ToString() == "Plan")">Плановый</option>
+                <option value="Accountant" selected="@(Model.Filter.Type.ToString() == "Accountant")">Бухгалтерский</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="templateId" class="form-label">Шаблон отчета</label>
             <select class="form-select" id="templateId" name="templateId">
                 <option value="">Все</option>
                 @foreach (var template in Model.Templates)
                 {
-                    <option value="@template.Id" selected="@(template.Id == Model.Filter.TemplateId)">@template.Name</option>
+                    <option value="@template.Id"
+                    data-type="@template.Type"
+                    selected="@(template.Id == Model.Filter.TemplateId)">
+                        @template.Name
+                    </option>
                 }
             </select>
         </div>
 
         @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
         {
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="branchId" class="form-label">Филиал</label>
                 <select class="form-select" id="branchId" name="branchId">
                     <option value="">Все</option>
@@ -88,7 +142,7 @@
         }
         else if (User.IsInRole("User"))
         {
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="branchId" class="form-label">Филиал</label>
                 <select class="form-select" id="branchId" name="branchId" disabled>
                     @if (Model.Branches.Any(b => b.Id == Model.Filter.BranchId))
@@ -132,9 +186,18 @@
                 {
                     <tr>
                         <td>@report.Name</td>
-                        <td>@Model.Templates.FirstOrDefault(t => t.Id == report.TemplateId)?.Name</td>
+                        <td>
+                            @if (report.Type.ToString() == "Plan")
+                            {
+                                <span class="report-badge plan">Плановый</span>
+                            }
+                            else
+                            {
+                                <span class="report-badge accounting">Бухгалтерский</span>
+                            }
+                        </td>
                         <td>@Model.Branches.FirstOrDefault(b => b.Id == report.BranchId)?.Name</td>
-                        <td>@report.Period.ToString("dd.MM.yyyy")</td> 
+                        <td>@report.Period.ToString("dd.MM.yyyy")</td>
                         <td>
                             @if (!string.IsNullOrEmpty(report.Comment))
                             {
@@ -142,7 +205,6 @@
                                     Комментарий
                                 </button>
 
-                                <!-- Modal -->
                                 <div class="modal fade" id="commentModal-@report.Id" tabindex="-1" aria-labelledby="modalLabel-@report.Id" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">

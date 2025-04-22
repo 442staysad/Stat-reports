@@ -227,7 +227,7 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _reportService.DeleteReportAsync(id);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction( "ReportArchive","ReportMvc");
         }
 
         [HttpGet("download/{reportId}")]
@@ -237,9 +237,15 @@ namespace Stat_reports.Controllers
             return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}.xls");
         }
 
-        public async Task<IActionResult> ReportArchive(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> ReportArchive(string? name, int? templateId, 
+            int? branchId,
+            DateTime? startDate, DateTime? endDate, ReportType? reportType)
         {
-            var reports = await _reportService.GetFilteredReportsAsync(name, templateId, branchId, startDate, endDate);
+            int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
+            if(User.IsInRole("User")) 
+                branchId = sessionBranchId;
+
+            var reports = await _reportService.GetFilteredReportsAsync(name, templateId, branchId, startDate, endDate, reportType);
             var branches = await _branchService.GetAllBranchesAsync();
             var templates = await _reportTemplateService.GetAllReportTemplatesAsync();
 
@@ -254,7 +260,8 @@ namespace Stat_reports.Controllers
                     TemplateId = templateId,
                     BranchId = branchId,
                     StartDate = startDate,
-                    EndDate = endDate
+                    EndDate = endDate,
+                    Type = reportType ?? null // или null, если Type тоже Nullable
                 }
             };
 

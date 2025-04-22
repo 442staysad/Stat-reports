@@ -27,47 +27,61 @@ namespace Core.Services
                 var reportService = scope.ServiceProvider.GetRequiredService<IReportService>();
                 var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
                 var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                var branchService = scope.ServiceProvider.GetRequiredService<IBranchService>();
 
                 var deadlines = await deadlineService.GetAllAsync();
                 var today = DateTime.UtcNow.Date;
 
                 foreach (var deadline in deadlines)
                 {
-                    var reportTemplateId = deadline.ReportTemplateId;
-                    var deadlineDate = deadline.DeadlineDate;
+                    // для каждого дедлайна — получаем его филиал
+                    var branchId = deadline.BranchId!.Value;
+                    var reportTemplate = deadline.Template;
+                    var deadlineDate = deadline.DeadlineDate.Date;
 
-                    var allBranches = await branchService.GetAllBranchesAsync();
+                    // если отчёт **не загружен** за этот период
+                    var existing = await reportService
+                        .FindByTemplateBranchPeriodAsync(deadline.ReportTemplateId, branchId, deadlineDate.Year, deadlineDate.Month);
+                    if (existing != null)
+                        continue;
 
-                    foreach (var branch in allBranches)
+                    // считаем дни до/после дедлайна
+                    var daysLeft = (deadlineDate - today).Days;
+                    string? message = daysLeft switch
                     {
-                        var users = await userService.GetUsersByBranchIdAsync(branch.Id);
-                        var report = await reportService.FindByTemplateBranchPeriodAsync(reportTemplateId, branch.Id, deadlineDate.Year, deadlineDate.Month);
+                        10 => $"Через 10 дней наступает срок сдачи отчёта: {reportTemplate.Name}",
+                        0 => $"Сегодня последний день сдачи отчёта: {reportTemplate.Name}",
+                        < 0 => $"Срок сдачи отчёта «{reportTemplate.Name}» истёк!",
+                        _ => null
+                    };
+                    if (message == null)
+                        continue;
 
-                        if (report == null)
-                        {
-                            var daysLeft = (deadlineDate - today).Days;
+                    // 1) Обычные пользователи филиала
+                    var branchUsers = await userService.GetUsersByBranchIdAsync(branchId);
+                    foreach (var u in branchUsers)
+                    {
+                            await notificationService.AddNotificationAsync(u.Id, message);
+                    }
 
-                            string? message = daysLeft switch
-                            {
-                                10 => $"Через 10 дней наступает срок сдачи отчета: {deadline.Template.Name}",
-                                0 => $"Сегодня последний день сдачи отчета: {deadline.Template.Name}",
-                                < 0 => $"Срок сдачи отчета '{deadline.Template.Name}' истек!",
-                                _ => null
-                            };
+                    // 2) PEB — если это Plan‑отчёт
+                    if (reportTemplate.Type == Enums.ReportType.Plan)
+                    {
+                        var pebUsers = await userService.GetUsersByRoleAsync("PEB");
+                        foreach (var u in pebUsers)
+                            await notificationService.AddNotificationAsync(u.Id, message + $" (Филиал: {deadline.Branch!.Name})");
+                    }
 
-                            if (message != null)
-                            {
-                                foreach (var user in users)
-                                {
-                                    await notificationService.AddNotificationAsync(user.Id, message);
-                                }
-                            }
-                        }
+                    // 3) OBUnF — если это Accountant‑отчёт
+                    if (reportTemplate.Type == Enums.ReportType.Accountant)
+                    {
+                        var obunfUsers = await userService.GetUsersByRoleAsync("OBUnF");
+                        foreach (var u in obunfUsers)
+                            await notificationService.AddNotificationAsync(u.Id, message + $" (Филиал: {deadline.Branch!.Name})");
                     }
                 }
 
-                await Task.Delay(TimeSpan.FromHours(24), stoppingToken); // Запускаем раз в сутки
+                // ждем сутки
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
         }
     }

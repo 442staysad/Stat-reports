@@ -141,6 +141,7 @@ namespace Core.Services
                 existingReport.FilePath = filePath;
                 existingReport.UploadedById = uploadedById;
                 existingReport.UploadDate = DateTime.UtcNow;
+                existingReport.Period = deadline.Period;
 
                 var updatedReport = await _reportRepository.UpdateAsync(existingReport);
 
@@ -331,36 +332,31 @@ namespace Core.Services
             return result;
         }
 
-        public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate)
+        public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(
+            string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType)
         {
             var query = _reportRepository.GetAll();
 
             if (!string.IsNullOrEmpty(name))
-            {
                 query = query.Where(r => r.Name.Contains(name));
-            }
 
             if (templateId.HasValue)
-            {
                 query = query.Where(r => r.TemplateId == templateId.Value);
-            }
 
             if (branchId.HasValue)
-            {
                 query = query.Where(r => r.BranchId == branchId.Value);
-            }
 
             if (startDate.HasValue)
-            {
-                query = query.Where(r => r.UploadDate >= startDate.Value);
-            }
+                query = query.Where(r => r.Period >= startDate.Value);
 
             if (endDate.HasValue)
-            {
-                query = query.Where(r => r.UploadDate <= endDate.Value);
-            }
+                query = query.Where(r => r.Period <= endDate.Value);
+
+            if (reportType.HasValue)
+                query = query.Where(r => r.Type == reportType.Value);
 
             var reports = await query.ToListAsync();
+
             return reports.Select(r => new ReportDto
             {
                 Id = r.Id,
@@ -370,7 +366,9 @@ namespace Core.Services
                 BranchId = r.BranchId,
                 TemplateId = r.TemplateId,
                 FilePath = r.FilePath,
-                Comment = r.Comment
+                Comment = r.Comment,
+                Period = r.Period,
+                Type = r.Type
             }).ToList();
         }
 
@@ -387,7 +385,8 @@ namespace Core.Services
                 TemplateId = report.TemplateId,
                 Comment = report.Comment,
                 Period = report.Period,
-                UploadDate = report.UploadDate
+                UploadDate = report.UploadDate,
+                Type =report.Type
             };
         }
 
@@ -403,8 +402,8 @@ namespace Core.Services
                 BranchId = reportDto.BranchId ?? 0,
                 TemplateId = reportDto.TemplateId ?? 0,
                 Comment = reportDto.Comment,
-                Period = reportDto.Period
-                
+                Period = reportDto.Period,
+                Type = reportDto.Type
             };
         }
     }
