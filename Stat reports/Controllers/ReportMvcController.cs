@@ -88,11 +88,13 @@ namespace Stat_reports.Controllers
             var report = await _reportService.GetReportByIdAsync(reportid);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
                 return NotFound("Файл отчета не найден");
-
+            var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
             var excelData = await _reportService.ReadExcelFileAsync(reportid);
             var model = new ExcelPreviewViewModel
             {
-                DeadlineId= deadlineId,
+                ReportType=report.Type==ReportType.Accountant?"OBUnF":"PEB",
+                BranchName = branch.Name,
+                DeadlineId = deadlineId,
                 ReportId = reportid,
                 ReportName = report.Name,
                 ExcelData = excelData,

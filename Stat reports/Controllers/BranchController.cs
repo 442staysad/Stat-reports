@@ -52,5 +52,12 @@ namespace Stat_reports.Controllers
             TempData["Success"] = "Филиал создан";
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _branchService.DeleteBranchAsync(id);
+            return RedirectToAction(nameof(Index)); // Или как называется твой метод просмотра
+        }
     }
 }

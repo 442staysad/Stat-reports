@@ -172,7 +172,8 @@ namespace Core.Services
                 };
 
                 var createdReport = await _reportRepository.AddAsync(newReport);
-
+                var user = await _userRepository.GetAll(u => u.Include(r => r.Role)).
+                    Where(u => u.Id == uploadedById).FirstOrDefaultAsync();
                 // Обновляем дедлайн
                 
                 if (deadline != null)
@@ -181,7 +182,10 @@ namespace Core.Services
                     deadline.ReportId = createdReport.Id;
                     await _deadlineRepository.UpdateAsync(deadline);
                 }
-
+                if (user.Role.RoleName != "User")
+                {
+                    await UpdateReportStatusAsync(createdReport.Id, ReportStatus.Reviewed);
+                }
                 return MapToDto(createdReport);
             }
         }

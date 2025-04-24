@@ -115,6 +115,6 @@ app.UseEndpoints(endpoints =>
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=ReportMvc}/{action=WorkingReports}/{id?}");
-app.Run();
+ app.Run();
 
 

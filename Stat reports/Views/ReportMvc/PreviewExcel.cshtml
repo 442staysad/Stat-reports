@@ -2,93 +2,323 @@
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 @{
+    var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
     bool isAdminOrHeadOffice = true;
     int? branchId = HttpContextAccessor.HttpContext?.Session?.GetInt32("BranchId");
 }
-@section Styles{
 
-        <style>
-        body {
-            background: snow;
-            color: white;
-            min-height: 100vh;
-            padding-top: 70px;
-        }
-        </style>
+@section Styles {
+<style>
+    :root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --accent-color: #e74c3c;
+    --light-bg: #f8f9fa;
+    --dark-text: #2c3e50;
+    --border-color: #dee2e6;
+    }
+
+    body {
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container-xl {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    }
+
+    .header {
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    }
+
+    .nav-tabs {
+    border-bottom: 2px solid var(--border-color);
+    }
+
+    .nav-tabs .nav-link {
+    color: var(--secondary-color);
+    font-weight: 500;
+    border: none;
+    padding: 12px 20px;
+    transition: all 0.3s;
+    }
+
+    .nav-tabs .nav-link:hover {
+    color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.1);
+    }
+
+    .nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
+    background-color: transparent;
+    }
+
+    .sheet-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    overflow: hidden;
+    }
+
+    .sheet-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 20px;
+    font-weight: 600;
+    }
+
+    .excel-table {
+    width: 100%;
+    border-collapse: collapse;
+    }
+
+    .excel-table th {
+    background-color: #f1f5f9;
+    color: var(--secondary-color);
+    font-weight: 600;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid var(--border-color);
+    }
+
+    .excel-table td {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    vertical-align: top;
+    }
+
+    .excel-table tr:nth-child(even) {
+    background-color: #f8fafc;
+    }
+
+    .excel-table tr:hover {
+    background-color: #f1f5f9;
+    }
+
+    .action-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-top: 20px;
+    }
+
+    .form-label {
+    font-weight: 600;
+    color: var(--secondary-color);
+    }
+
+    .no-data {
+    padding: 40px;
+    text-align: center;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 8px;
+    }
+
+    .status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    }
+
+    .status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    }
+
+    .status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+    }
+
+    .status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+    }
+
+    .scrollable-table {
+    overflow-x: auto;
+    max-width: 100%;
+    }
+
+    @@media (max-width: 768px) {
+    .nav-tabs .nav-link {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    }
+
+    .excel-table th,
+    .excel-table td {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    }
+    }
+</style>
 }
-<h2>Просмотр Excel файла: @Model.ReportName</h2>
 
-@if (isAdminOrHeadOffice)
-{
-    <ul class="nav nav-tabs" id="branchTabs" role="tablist">
-        @foreach (var branch in Model.ExcelData.Keys.Distinct())
-        {
+<div class="container-xl">
+    <div class="header">
+        <h2 class="mb-3">Просмотр отчета: <strong>@Model.ReportName</strong></h2>
+
+    </div>
+
+    @if (isAdminOrHeadOffice)
+    {
+        <ul class="nav nav-tabs" id="branchTabs" role="tablist">
+
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(branch == Model.ExcelData.Keys.First() ? "active" : "")" id="tab-@branch" data-bs-toggle="tab" data-bs-target="#branch-@branch" type="button" role="tab" aria-controls="branch-@branch" aria-selected="@(branch == Model.ExcelData.Keys.First())">
-                    Branch @branch
+                <button class="nav-link" active)
+                id="tab-@Model.BranchName" data-bs-toggle="tab" data-bs-target="#branch-@Model.BranchName"
+                type="button" role="tab" aria-controls="branch-@Model.BranchName"
+                >
+                    Филиал @Model.BranchName
                 </button>
             </li>
-        }
-    </ul>
-    <div class="tab-content" id="branchTabsContent">
-        @foreach (var branch in Model.ExcelData.Keys.Distinct())
-        {
-            <div class="tab-pane fade @(branch == Model.ExcelData.Keys.First() ? "show active" : "")" id="branch-@branch" role="tabpanel" aria-labelledby="tab-@branch">
-                @foreach (var sheet in Model.ExcelData[branch])
-                {
-                    <h3>Лист: @sheet.Key</h3>
-                    <table class="table">
-                        @foreach (var row in sheet.Value)
-                        {
-                            <tr>
-                                @foreach (var cell in row)
-                                {
-                                    <td>@cell</td>
-                                }
-                            </tr>
-                        }
-                    </table>
-                }
-                <h3>Добавить комментарий</h3>
-                <form asp-action="AddComment" method="post">
-                    <input type="hidden" name="reportId" value="@Model.ReportId" />
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Комментарий</label>
-                        <textarea class="form-control" id="comment" name="comment" rows="3">@Model.Comment</textarea>
+
+        </ul>
+
+        <div class="tab-content mt-3" id="branchTabsContent">
+            @foreach (var branch in Model.ExcelData.Keys.Distinct())
+            {
+                <div class="tab-pane fade @(branch == Model.ExcelData.Keys.First() ? "show active" : "")"
+                id="branch-@branch" role="tabpanel" aria-labelledby="tab-@branch">
+                    @foreach (var sheet in Model.ExcelData[branch])
+                    {
+                        <div class="sheet-container mb-4">
+                            <div class="sheet-header">
+                                Лист: @sheet.Key
+                            </div>
+                            <div class="scrollable-table">
+                                <table class="excel-table">
+                                    @{
+                                        var isHeader = true;
+                                    }
+                                    @foreach (var row in sheet.Value)
+                                    {
+                                        <tr>
+                                            @foreach (var cell in row)
+                                            {
+                                                if (isHeader)
+                                                {
+                                                    <th>@cell</th>
+                                                }
+                                                else
+                                                {
+                                                    <td>@cell</td>
+                                                }
+                                            }
+                                        </tr>
+                                        isHeader = false;
+                                    }
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.ReportType == role||User.IsInRole("Admin"))
+                    {
+                        <div class="action-section">
+                            <h4 class="mb-3">Действия с отчетом</h4>
+
+                        <form asp-action="AddComment" method="post" class="mb-4">
+                            <input type="hidden" name="reportId" value="@Model.ReportId" />
+                            <div class="mb-3">
+                                <label for="comment" class="form-label">Комментарий</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="3"
+                                          placeholder="Введите ваш комментарий...">@Model.Comment</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Сохранить комментарий
+                            </button>
+                        </form>
+
+                        <div class="d-flex gap-2">
+                            <form asp-action="AcceptReport" method="post" class="mb-2">
+                                <input type="hidden" name="reportId" value="@Model.ReportId" />
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Принять отчет
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Сохранить комментарий</button>
-                </form>
-                <h3>Изменить статус отчета</h3>
-                <form asp-action="AcceptReport" method="post">
-                    <input type="hidden" name="reportId" value="@Model.ReportId" />
-                    <button type="submit" class="btn btn-success">Принять отчет</button>
-                </form>
-            </div>
-        }
-    </div>
-}
-else
-{
-    @if (branchId.HasValue && Model.ExcelData.ContainsKey(branchId.ToString()))
-    {
-        @foreach (var sheet in Model.ExcelData[branchId.ToString()])
-        {
-            <h3>Лист: @sheet.Key</h3>
-            <table class="table">
-                @foreach (var row in sheet.Value)
-                {
-                    <tr>
-                        @foreach (var cell in row)
-                        {
-                            <td>@cell</td>
-                        }
-                    </tr>
-                }
-            </table>
-        }
+                    }
+                </div>
+            }
+        </div>
     }
     else
     {
-        <p>Нет данных для отображения.</p>
+        @if (branchId.HasValue && Model.ExcelData.ContainsKey(branchId.ToString()))
+        {
+            @foreach (var sheet in Model.ExcelData[branchId.ToString()])
+            {
+                <div class="sheet-container mb-4">
+                    <div class="sheet-header">
+                        Лист: @sheet.Key
+                    </div>
+                    <div class="scrollable-table">
+                        <table class="excel-table">
+                            @{
+                                var isHeader = true;
+                            }
+                            @foreach (var row in sheet.Value)
+                            {
+                                <tr>
+                                    @foreach (var cell in row)
+                                    {
+                                        if (isHeader)
+                                        {
+                                            <th>@cell</th>
+                                        }
+                                        else
+                                        {
+                                            <td>@cell</td>
+                                        }
+                                    }
+                                </tr>
+                                isHeader = false;
+                            }
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-data">
+                <i class="bi bi-file-excel" style="font-size: 3rem; color: #6c757d;"></i>
+                <h4 class="mt-3">Нет данных для отображения</h4>
+                <p>Отчет не содержит данных или у вас нет доступа к просмотру.</p>
+            </div>
+        }
     }
+</div>
+
+@section Scripts {
+    <script>
+        // Инициализация всплывающих подсказок
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+
+        // Автоматический размер textarea для комментария
+        document.querySelectorAll('textarea').forEach(el => {
+            el.style.height = el.setAttribute('style', 'height: ' + el.scrollHeight + 'px');
+            el.addEventListener('input', e => {
+                el.style.height = 'auto';
+                el.style.height = (el.scrollHeight) + 'px';
+            });
+        });
+    </script>
 }

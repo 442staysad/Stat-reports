@@ -79,5 +79,12 @@ namespace Stat_reports.Controllers
             TempData["Success"] = "Пользователь создан";
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _userService.DeleteUserAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -4,6 +4,8 @@ namespace Stat_reports.ViewModels
 {
     public class ExcelPreviewViewModel
     {
+        public string? BranchName { get; set; }
+        public string? ReportType { get; set; }
         public int DeadlineId { get; set; }
         public int ReportId { get; set; }
         public string ReportName { get; set; }
