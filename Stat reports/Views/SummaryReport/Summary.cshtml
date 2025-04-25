@@ -21,22 +21,26 @@
     }
 
     .branches-container {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    padding: 10px;
-    margin: 15px 0;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 15px;
     }
 
     .branch-item {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
     }
 
     .branch-item:last-child {
-    border-bottom: none;
+        border-bottom: none;
     }
+    .form-check-input {
+        margin-right: 8px;
+    }
+
 </style>
 }
 
@@ -121,16 +125,26 @@
                 <option value="2">II полугодие</option>
             </select>
         </div>
-    
+
 
     <div class="mb-3">
         <label class="form-label">Филиалы:</label>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-medium">Выбрать:</span>
+            <div>
+                <button type="button" id="selectAllBranches" class="btn btn-sm btn-success me-2">✓ Все</button>
+                <button type="button" id="deselectAllBranches" class="btn btn-sm btn-warning">× Сбросить</button>
+            </div>
+        </div>
         <div class="branches-container">
             @foreach (var branch in Model.Branches)
             {
-                <div class="form-check-inline">
-                    <input type="checkbox" id="@branch.Name" name="SelectedBranchIds" value="@branch.Id" />
-                    <label for="@branch.Name">@branch.Name</label>
+                <div class="branch-item">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="branch_@branch.Id"
+                               name="SelectedBranchIds" value="@branch.Id">
+                        <label class="form-check-label" for="branch_@branch.Id">@branch.Name</label>
+                    </div>
                 </div>
             }
         </div>
@@ -220,6 +234,31 @@
             // Инициализация
             filterTemplatesByType('');
             updatePeriodFields();
+            // Кнопки выбора всех/ничего
+            const selectAllBtn = document.getElementById('selectAllBranches');
+            const deselectAllBtn = document.getElementById('deselectAllBranches');
+            const branchCheckboxes = document.querySelectorAll('input[name="SelectedBranchIds"]');
+
+            selectAllBtn.addEventListener('click', function() {
+                branchCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            });
+
+            deselectAllBtn.addEventListener('click', function() {
+                branchCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            });
+
+            // Автоматическая проверка кнопки "Все", если выбраны все филиалы
+            branchCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = [...branchCheckboxes].every(cb => cb.checked);
+                    selectAllBtn.classList.toggle('btn-primary', allChecked);
+                    selectAllBtn.classList.toggle('btn-outline-primary', !allChecked);
+                });
+            });
         });
     </script>
 }

@@ -239,7 +239,7 @@ namespace Core.Services
             if (deadline == null) return false;
 
             deadline.Status = ReportStatus.NeedsCorrection;
-            if (!string.IsNullOrWhiteSpace(report.Comment))
+            if (!string.IsNullOrWhiteSpace(comment))
             {
                 deadline.Comment = comment;
                 var branchUsers = await _userRepository.FindAllAsync(u => u.BranchId == report.BranchId);

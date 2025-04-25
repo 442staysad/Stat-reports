@@ -46,7 +46,10 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(7045); // порт 7045, не 5000!
+});
 // Настройка MVC
 builder.Services.AddScoped<IFileService,FileService>();
 builder.Services.AddControllersWithViews();
@@ -92,7 +95,7 @@ if (!app.Environment.IsDevelopment())
 //builder.Services.AddSession();
 //app.UseSession();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();

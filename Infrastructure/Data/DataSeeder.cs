@@ -74,21 +74,24 @@ namespace Infrastructure.Data
                     UserName = "admin",
                     FullName = "Системный администратор",
                     Email = "admin@domain.by",
-                    RoleId = roles["Admin"]
+                    RoleId = roles["Admin"],
+                    BranchId = branches.First(b => b.UNP == "100001").Id // Привязываем к филиалу Минск
                 },
                 new()
                 {
                     UserName = "peb",
                     FullName = "Пользователь ПЭБ",
                     Email = "peb@domain.by",
-                    RoleId = roles["PEB"]
+                    RoleId = roles["PEB"],
+                    BranchId = branches.First(b => b.UNP == "100002").Id 
                 },
                 new()
                 {
                     UserName = "obunf",
                     FullName = "Пользователь ОБУиФ",
                     Email = "obunf@domain.by",
-                    RoleId = roles["OBUnF"]
+                    RoleId = roles["OBUnF"],
+                    BranchId = branches.First(b => b.UNP == "100003").Id
                 },
                 new()
                 {
@@ -96,7 +99,7 @@ namespace Infrastructure.Data
                     FullName = "Пользователь филиала Минск",
                     Email = "user1@domain.by",
                     RoleId = roles["User"],
-                    BranchId = branches.First(b => b.UNP == "100001").Id
+                    BranchId = branches.First(b => b.UNP == "100004").Id
                 }
             };
 

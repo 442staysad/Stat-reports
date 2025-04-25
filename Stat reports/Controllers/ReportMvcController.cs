@@ -82,7 +82,7 @@ namespace Stat_reports.Controllers
             return report == null ? NotFound() : View(report);
         }
 
-        [Authorize(Roles = "Admin,PEB,OBUnF")]
+
         public async Task<IActionResult> PreviewExcel(int reportid,int deadlineId)
         {
             var report = await _reportService.GetReportByIdAsync(reportid);

@@ -321,7 +321,24 @@
             </a>
         </div>
     }
-
+    <!-- Добавьте этот блок перед табами филиалов -->
+    <ul class="nav nav-tabs mb-3" id="reportTypeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-report-type="" type="button">
+                Все отчеты
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-report-type="Plan" type="button">
+                Плановые
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-report-type="Accountant" type="button">
+                Бухгалтерские
+            </button>
+        </li>
+    </ul>
     @if (visibleBranches.Any())
     {
         <ul class="nav nav-tabs" id="branchTabs" role="tablist">
@@ -367,7 +384,7 @@
                                 <tbody>
                                     @foreach (var item in branchReports)
                                     {
-                                        <tr>
+                                        <tr data-report-type="@item.ReportType">
                                             <td>@item.TemplateName</td>
                                             <td>@item.Deadline.ToString("dd.MM.yyyy")</td>
                                             <td>
@@ -395,7 +412,11 @@
                                                         Комментарий
                                                     </button>
 
-                                                    <div class="modal fade" id="commentModal-@item.ReportId" tabindex="-1" aria-labelledby="commentModalLabel-@item.ReportId" aria-hidden="true">
+                                                    <div class="modal" id="commentModal-@item.ReportId"
+                                                         aria-labelledby="commentModalLabel-@item.ReportId"
+                                                         aria-hidden="true"
+                                                         data-bs-backdrop="false">
+                                                        <!-- Убирает затемнение -->
                                                         <div class="modal-dialog modal-dialog-centered">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
@@ -404,7 +425,7 @@
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <div class="alert alert-info">
-                                                                        <strong>@item.TemplateName</strong><br>
+                                                                        <strong>@item.TemplateName</strong><br />
                                                                         <small class="text-muted">Срок: @item.Deadline.ToString("dd.MM.yyyy")</small>
                                                                     </div>
                                                                     <div class="p-3 bg-light rounded">
@@ -488,24 +509,42 @@
 
 @section Scripts {
     <script>
-        // Активация всплывающих подсказок
-        $(function () {
-            $('[data-bs-toggle="tooltip"]').tooltip();
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const typeTabs = document.querySelectorAll('#reportTypeTabs .nav-link');
+            const branchTabs = document.querySelectorAll('#branchTabs .nav-link');
 
-        // Плавный переход между табами
-        $('#branchTabs a').on('click', function (e) {
-            e.preventDefault();
-            $(this).tab('show');
-        });
+            // Функция фильтрации строк по reportType для всех табов филиалов
+            function filterAllBranches(reportType) {
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.querySelectorAll('tbody tr').forEach(row => {
+                        const rowType = row.getAttribute('data-report-type');
+                        row.style.display = (!reportType || rowType === reportType) ? '' : 'none';
+                    });
+                });
+            }
 
-        // Автоматическая отправка формы при выборе файла
-        document.querySelectorAll('input[type="file"]').forEach(input => {
-            input.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    this.form.submit();
-                }
+            // хук на клики табов типов
+            typeTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    typeTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const rt = tab.getAttribute('data-report-type');
+                    filterAllBranches(rt);
+                });
             });
+
+            // при переключении филиала — повторно применяем текущий фильтр
+            branchTabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', () => {
+                    const activeTypeTab = document.querySelector('#reportTypeTabs .nav-link.active');
+                    const rt = activeTypeTab.getAttribute('data-report-type');
+                    filterAllBranches(rt);
+                });
+            });
+
+            // инициализация: все, без фильтра
+            filterAllBranches('');
         });
+
     </script>
 }

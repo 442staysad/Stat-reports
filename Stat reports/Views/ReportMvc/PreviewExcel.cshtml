@@ -173,7 +173,33 @@
         <h2 class="mb-3">Просмотр отчета: <strong>@Model.ReportName</strong></h2>
 
     </div>
+    @if (Model.ReportType == role || User.IsInRole("Admin"))
+    {
+        <div class="action-section">
+            <h4 class="mb-3">Действия с отчетом</h4>
 
+            <form asp-action="AddComment" method="post" class="mb-4">
+                <input type="hidden" name="reportId" value="@Model.ReportId" />
+                <div class="mb-3">
+                    <label for="comment" class="form-label">Комментарий</label>
+                    <textarea class="form-control" id="comment" name="comment" rows="3"
+                              placeholder="Введите ваш комментарий...">@Model.Comment</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить комментарий
+                </button>
+            </form>
+
+            <div class="d-flex gap-2">
+                <form asp-action="AcceptReport" method="post" class="mb-2">
+                    <input type="hidden" name="reportId" value="@Model.ReportId" />
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Принять отчет
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
     @if (isAdminOrHeadOffice)
     {
         <ul class="nav nav-tabs" id="branchTabs" role="tablist">

@@ -8,11 +8,11 @@ namespace Stat_reports.ViewModels
         [Required] public string UserName { get; set; }
         [Required] public string FullName { get; set; }
         public string? Number { get; set; }
-        [EmailAddress] public string? Email { get; set; }
+        public string? Email { get; set; }
         public string? Position { get; set; }
         [Required, MinLength(6)] public string Password { get; set; }
 
-        [Required] public int RoleId { get; set; }
+        public int RoleId { get; set; }
         public IEnumerable<SelectListItem> RoleOptions { get; set; }
 
         [Required] public int BranchId { get; set; }

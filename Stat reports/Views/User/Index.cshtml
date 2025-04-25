@@ -30,9 +30,10 @@
 
 <div class="main-container">
     <h2>Пользователи</h2>
-
+        @if (User.IsInRole("Admin"))
+    {
     <a asp-action="Create" class="btn btn-add">➕ Добавить пользователя</a>
-
+                }
     <table class="table user-table">
         <thead>
             <tr>
@@ -56,7 +57,7 @@
                     <td>@user.Number</td>
                     <td><span class="badge bg-secondary">⏳ offline</span></td>
                     <td>
-                    @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
+                    @if (User.IsInRole("Admin") )
                     {
                         <form asp-action="Delete" asp-route-id="@user.Id" method="post" onsubmit="return confirm('Удалить пользователя?');">
                             <button type="submit" class="btn btn-sm btn-danger">🗑 Удалить</button>
@@ -66,4 +67,5 @@
                 </tr>}
             }
         </tbody>
+        </table>
 </div>

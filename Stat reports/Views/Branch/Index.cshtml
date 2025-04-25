@@ -30,9 +30,10 @@
 
 <div class="main-container">
     <h2>Филиалы</h2>
-
-    <a asp-action="Create" class="btn btn-add">➕ Добавить филиал</a>
-
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-add">➕ Добавить филиал</a>
+    }
     <table class="table branch-table">
         <thead>
             <tr>
@@ -54,7 +55,7 @@
                         <td>@branch.Region</td>
                         <td>@branch.Address</td>
                         <td>
-                            @if (User.IsInRole("Admin")||User.IsInRole("PEB")||User.IsInRole("OBUnF"))
+                            @if (User.IsInRole("Admin"))
                             {
                                 <form asp-action="Delete" asp-route-id="@branch.Id" method="post" onsubmit="return confirm('Удалить филиал?');">
                                     <button type="submit" class="btn btn-sm btn-danger">🗑 Удалить</button>

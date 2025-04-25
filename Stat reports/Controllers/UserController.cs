@@ -31,7 +31,7 @@ namespace Stat_reports.Controllers
             return View(dtos);
         }
 
-        [Authorize(Roles = "Admin,PEB,OBUnF,User")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
@@ -40,16 +40,17 @@ namespace Stat_reports.Controllers
             var vm = new UserCreateViewModel
             {
                 RoleOptions = (await _roleService.GetAllRolesAsync())
-                                 .Where(r => isGlobal ? true : r.Id == /*User*/1)
-                                 .Select(r => new SelectListItem(r.RoleName, r.Id.ToString())),
+                    .Where(r => isGlobal || r.RoleName == "User") // для обычного — только "User"
+                    .Select(r => new SelectListItem(r.RoleName, r.Id.ToString())),
+
                 BranchOptions = (await _branchService.GetAllBranchesAsync())
-                                 .Where(b => isGlobal ? true : b.UNP == /*session*/"")
-                                 .Select(b => new SelectListItem(b.Name, b.Id.ToString())),
+                    .Where(b => isGlobal || b.Id == sessionBranchId)
+                    .Select(b => new SelectListItem(b.Name, b.Id.ToString())),
             };
             return View(vm);
         }
 
-        [HttpPost, Authorize(Roles = "Admin,PEB,OBUnF,User")]
+        [HttpPost, Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(UserCreateViewModel vm)
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
@@ -80,7 +81,7 @@ namespace Stat_reports.Controllers
             return RedirectToAction(nameof(Index));
         }
         [HttpPost]
-        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             await _userService.DeleteUserAsync(id);

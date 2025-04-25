@@ -21,6 +21,7 @@ namespace Stat_reports.Controllers
             return View(dtos);
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["Title"] = "Добавить филиал";
@@ -28,6 +29,7 @@ namespace Stat_reports.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(BranchCreateViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
@@ -53,7 +55,7 @@ namespace Stat_reports.Controllers
             return RedirectToAction(nameof(Index));
         }
         [HttpPost]
-        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             await _branchService.DeleteBranchAsync(id);

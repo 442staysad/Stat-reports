@@ -117,7 +117,10 @@
                         <li class="nav-item">
                             <a class="nav-link @(IsActive("Profile", "Index") ? "active" : "")" href="@Url.Action("Index", "Profile")">👤 Аккаунт</a>
                         </li>
-
+                        <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="nav-link btn btn-link text-white" style="text-decoration: none;">🚪 Выход</button>
+                        </form>
                         @if (User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF"))
                         {
                             <li class="nav-item dropdown">
