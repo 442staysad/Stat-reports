@@ -56,7 +56,7 @@ namespace Stat_reports.Controllers
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
             bool isGlobal = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF");
 
-            if (!ModelState.IsValid) return View(vm);
+            
 
             // force branch/role for non-global
             if (!isGlobal)
@@ -76,6 +76,7 @@ namespace Stat_reports.Controllers
                 RoleId = vm.RoleId,
                 BranchId = vm.BranchId
             };
+            
             await _userService.CreateUserAsync(dto);
             TempData["Success"] = "Пользователь создан";
             return RedirectToAction(nameof(Index));
