@@ -12,14 +12,14 @@ namespace Core.Services
 {
     public class BranchService : IBranchService
     {
-        private readonly IRepository<Branch> _branchRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher<Branch> _branchpasswordHasher;
 
-        public BranchService(IRepository<Branch> branchRepository, 
-            IPasswordHasher<Branch> bramchpasswordhasher)
+        public BranchService(IUnitOfWork unitOfWork, 
+            IPasswordHasher<Branch> branchpasswordhasher)
         {
-            _branchRepository = branchRepository;
-            _branchpasswordHasher = bramchpasswordhasher;
+            _unitOfWork = unitOfWork;
+            _branchpasswordHasher = branchpasswordhasher;
         }
 
 
@@ -41,20 +41,20 @@ namespace Core.Services
                 ChiefAccountant = dto.ChiefAccountant
             };
             entity.PasswordHash = _branchpasswordHasher.HashPassword(entity, dto.Password);
-            return await _branchRepository.AddAsync(entity);
+            return await _unitOfWork.Branches.AddAsync(entity);
         }
 
         public async Task<bool> DeleteBranchAsync(int id)
         {
-            var branch = await _branchRepository.FindAsync(b => b.Id == id);
+            var branch = await _unitOfWork.Branches.FindAsync(b => b.Id == id);
             if (branch == null) return false;
-            await _branchRepository.DeleteAsync(branch);
+            await _unitOfWork.Branches.DeleteAsync(branch);
             return true;
         }
 
         public async Task<IEnumerable<BranchDto>> GetAllBranchesDtosAsync()
         {
-            return (await _branchRepository.GetAllAsync()).Select(b => new BranchDto
+            return (await _unitOfWork.Branches.GetAllAsync()).Select(b => new BranchDto
             {
                 Name = b.Name,
                 Shortname = b.Shortname,
@@ -74,18 +74,18 @@ namespace Core.Services
 
         public async Task<IEnumerable<Branch>> GetAllBranchesAsync()
         {
-            return await _branchRepository.GetAllAsync();
+            return await _unitOfWork.Branches.GetAllAsync();
         }
 
         public async Task<Branch> GetBranchByIdAsync(int? id)
         {
-            return await _branchRepository.FindAsync(b => b.Id == id);
+            return await _unitOfWork.Branches.FindAsync(b => b.Id == id);
         }
 
 
         public async Task<Branch> UpdateBranchAsync(BranchProfileDto dto)
         {
-            var branch = await _branchRepository.FindAsync(b=>b.Id==dto.Id) ?? throw new Exception("Филиал не найден.");
+            var branch = await _unitOfWork.Branches.FindAsync(b=>b.Id==dto.Id) ?? throw new Exception("Филиал не найден.");
             branch.GoverningName = dto.GoverningName;
             branch.HeadName = dto.HeadName;
             branch.Name = dto.Name;
@@ -99,7 +99,7 @@ namespace Core.Services
             branch.Supervisor = dto.Supervisor;
             branch.ChiefAccountant = dto.ChiefAccountant;
 
-            return await _branchRepository.UpdateAsync(branch);
+            return await _unitOfWork.Branches.UpdateAsync(branch);
         }
     }
 }

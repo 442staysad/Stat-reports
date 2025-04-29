@@ -19,6 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Регистрация репозитория (Generic Repository)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Добавляем сервисы (добавим их позже)
 builder.Services.AddScoped<IBranchService, BranchService>();

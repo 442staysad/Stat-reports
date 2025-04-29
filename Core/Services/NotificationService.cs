@@ -5,11 +5,11 @@ namespace Core.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly IRepository<Notification> _notificationRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public NotificationService(IRepository<Notification> notificationRepository)
+        public NotificationService(IUnitOfWork notificationRepository)
         {
-            _notificationRepository = notificationRepository;
+            _unitOfWork = notificationRepository;
         }
 
         public async Task AddNotificationAsync(int userId, string message)
@@ -22,32 +22,32 @@ namespace Core.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _notificationRepository.AddAsync(notification);
+            await _unitOfWork.Notifications.AddAsync(notification);
         }
 
         public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(int userId)
         {
-            return await _notificationRepository
+            return await _unitOfWork.Notifications
                 .FindAllAsync(n => n.UserId == userId && !n.IsRead);
                 
         }
 
         public async Task MarkAsReadAsync(int notificationId)
         {
-            var notification = await _notificationRepository.FindAsync(n => n.Id == notificationId);
+            var notification = await _unitOfWork.Notifications.FindAsync(n => n.Id == notificationId);
             if (notification != null)
             {
                 notification.IsRead = true;
-                await _notificationRepository.UpdateAsync(notification);
+                await _unitOfWork.Notifications.UpdateAsync(notification);
             }
         }
 
         public async Task<bool> DeleteNotification(int id)
         {
-            var notification = await _notificationRepository.FindAsync(n => n.Id == id);
+            var notification = await _unitOfWork.Notifications.FindAsync(n => n.Id == id);
             if (notification != null)
             {
-                await _notificationRepository.DeleteAsync(notification);
+                await _unitOfWork.Notifications.DeleteAsync(notification);
                 return true;
             }
             return false;

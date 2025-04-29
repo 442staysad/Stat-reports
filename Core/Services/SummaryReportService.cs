@@ -12,22 +12,19 @@ namespace Core.Services
 {
     public class SummaryReportService : ISummaryReportService
     {
-        private readonly IRepository<Report> _reportRepo;
-        private readonly IRepository<ReportTemplate> _templateRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IExcelSplitterService _excelSplitter;
 
-        public SummaryReportService(IRepository<Report> reportRepo,
-                                    IRepository<ReportTemplate> templateRepo,
+        public SummaryReportService(IUnitOfWork unitOfWork,
                                     IExcelSplitterService excelSplitter)
         {
-            _reportRepo = reportRepo;
-            _templateRepo = templateRepo;
+            _unitOfWork = unitOfWork;
             _excelSplitter = excelSplitter;
         }
 
         public async Task<List<Report>> GetReportsForSummaryAsync(int templateId, int year, int? month, int? quarter, int? halfYear, List<int> branchIds)
         {
-            var reports = await _reportRepo.FindAllAsync(r =>
+            var reports = await _unitOfWork.Reports.FindAllAsync(r =>
                 r.TemplateId == templateId &&
                 r.UploadDate.Year == year &&
                 branchIds.Contains((int)r.BranchId));
@@ -51,7 +48,7 @@ namespace Core.Services
         public Task<string> GetTemplateFilePathAsync(int templateId)
         {
             // Пусть путь хранится в шаблоне
-            return _templateRepo.FindAsync(t => t.Id == templateId).ContinueWith(t => t.Result.FilePath);
+            return _unitOfWork.ReportTemplates.FindAsync(t => t.Id == templateId).ContinueWith(t => t.Result.FilePath);
         }
 
         public byte[] MergeReportsToExcel(List<Report> reports, string templatePath)

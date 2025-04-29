@@ -11,15 +11,15 @@ namespace Core.Services
 {
     public class RoleService:IRoleService
     {
-        private readonly IRepository<SystemRole> _roleRepository;
-        public RoleService(IRepository<SystemRole> roleRepository) 
+        private readonly IUnitOfWork _unitOfWork;
+        public RoleService(IUnitOfWork unitOfWork) 
         {
-            _roleRepository = roleRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<RoleDto>> GetAllRolesAsync()
         {
-            return (await _roleRepository.GetAllAsync())
+            return (await _unitOfWork.SystemRoles.GetAllAsync())
                 .Select(r => new RoleDto
                 {
                     Id = r.Id,
@@ -28,7 +28,7 @@ namespace Core.Services
         }
         public async Task<RoleDto> GetRoleByNameAsync(string name)
         {
-            var role = await _roleRepository.FindAsync(r => r.RoleName == name);
+            var role = await _unitOfWork.SystemRoles.FindAsync(r => r.RoleName == name);
             return new RoleDto
             {
                 Id = role.Id,

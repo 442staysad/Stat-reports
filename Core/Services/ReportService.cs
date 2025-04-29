@@ -15,61 +15,49 @@ namespace Core.Services
 {
     public class ReportService : IReportService
     {
-        private readonly IRepository<Report> _reportRepository;
-        private readonly IRepository<ReportTemplate> _templateRepository;
-        private readonly IRepository<SubmissionDeadline> _deadlineRepository;
-        private readonly IRepository<Branch> _branchRepository;
-        private readonly IRepository<User> _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
         private readonly IFileService _fileService;
         private readonly IDeadlineService _deadlineService;
 
         public ReportService(
-            IRepository<Report> _reportRepository,
-            IRepository<ReportTemplate> templateRepository,
-            IRepository<SubmissionDeadline> deadlineRepository,
+            IUnitOfWork unitOfWork,
+            INotificationService notificationService,
             IFileService fileService,
-            IDeadlineService deadlineService, 
-            IRepository<Branch> branchrepository,
-            IRepository<User> userRepository,
-            INotificationService notificationService)
+            IDeadlineService deadlineService)
         {
-            this._reportRepository = _reportRepository;
-            _templateRepository = templateRepository;
-            _deadlineRepository = deadlineRepository;
+            _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
             _fileService = fileService;
             _deadlineService = deadlineService;
-            _userRepository = userRepository;
-            _branchRepository = branchrepository;
-            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<Report>> GetAllReportsAsync()
         {
-            var reports = await _reportRepository.GetAllAsync();
-            return reports;
+            return await _unitOfWork.Reports.GetAllAsync();
         }
+
         public async Task<IEnumerable<Report>> GetReportsByBranchAsync(int branchId)
         {
-            return await _reportRepository.FindAllAsync(r => r.BranchId == branchId);
+            return await _unitOfWork.Reports.FindAllAsync(r => r.BranchId == branchId);
         }
 
         public async Task<ReportDto?> GetReportByIdAsync(int id)
         {
-            var report = await _reportRepository.FindAsync(r => r.Id == id);
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == id);
             return report == null ? null : MapToDto(report);
         }
 
         public async Task<ReportDto> CreateReportAsync(ReportDto reportDto)
         {
             var report = MapToEntity(reportDto);
-            var createdReport = await _reportRepository.AddAsync(report);
-            return MapToDto(createdReport);
+            var created = await _unitOfWork.Reports.AddAsync(report);
+            return MapToDto(created);
         }
 
         public async Task<Report?> FindByTemplateBranchPeriodAsync(int templateId, int branchId, int year, int month)
         {
-            return await _reportRepository.FindAsync(r =>
+            return await _unitOfWork.Reports.FindAsync(r =>
                 r.TemplateId == templateId &&
                 r.BranchId == branchId &&
                 r.Period.Year == year &&
@@ -78,64 +66,55 @@ namespace Core.Services
 
         public async Task<ReportDto> UpdateReportAsync(int id, ReportDto reportDto)
         {
-            var existingReport = await _reportRepository.FindAsync(r => r.Id == id);
-            if (existingReport == null) return null;
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == id);
+            if (report == null) return null;
 
-            existingReport.Name = reportDto.Name;
-            existingReport.UploadDate = reportDto.SubmissionDate;
+            report.Name = reportDto.Name;
+            report.UploadDate = reportDto.SubmissionDate;
+            report.FilePath = reportDto.FilePath;
 
-            existingReport.FilePath = reportDto.FilePath;
+            await _unitOfWork.Reports.UpdateAsync(report);
 
-            var updatedReport = await _reportRepository.UpdateAsync(existingReport);
-            return MapToDto(updatedReport);
+            return MapToDto(report);
         }
 
-       public async Task<bool> DeleteReportAsync(int id)
-       {
-            var report = await _reportRepository.FindAsync(r => r.Id == id);
+        public async Task<bool> DeleteReportAsync(int id)
+        {
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == id);
             if (report == null) return false;
-            
+
             if (!string.IsNullOrEmpty(report.FilePath))
                 await _fileService.DeleteFileAsync(report.FilePath);
 
-            await _reportRepository.DeleteAsync(report);
+            await _unitOfWork.Reports.DeleteAsync(report);
+
             return true;
         }
 
-        /// <summary>
-        /// Проверяет срок сдачи перед загрузкой отчета.
-        /// </summary>
         public async Task<ReportDto> UploadReportAsync(int templateId, int branchId, int uploadedById, IFormFile file)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Файл отсутствует или пуст");
 
-            // Получаем информацию о филиале и шаблоне
-            var branch = await _branchRepository.FindAsync(b => b.Id == branchId);
-            if (branch == null) throw new ArgumentException("Филиал не найден");
+            var branch = await _unitOfWork.Branches.FindAsync(b => b.Id == branchId)
+                         ?? throw new ArgumentException("Филиал не найден");
 
-            var template = await _templateRepository.FindAsync(t => t.Id == templateId);
-            if (template == null) throw new ArgumentException("Шаблон не найден");
+            var template = await _unitOfWork.ReportTemplates.FindAsync(t => t.Id == templateId)
+                           ?? throw new ArgumentException("Шаблон не найден");
 
-            var deadline = await _deadlineRepository.FindAsync(d => d.ReportTemplateId == templateId 
-            && d.BranchId == branchId);
+            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(d =>
+                d.ReportTemplateId == templateId && d.BranchId == branchId)
+                ?? throw new ArgumentException("Срок сдачи не найден");
 
+            var existingReport = await _unitOfWork.Reports.FindAsync(r =>
+                r.TemplateId == templateId && r.BranchId == branchId && r.Period == deadline.Period);
 
-            // Проверяем, существует ли отчет для указанного периода
-            var existingReport = await _reportRepository.FindAsync(r => r.TemplateId == templateId 
-            && r.BranchId == branchId && r.Period == deadline.Period);
-
-            // Сохраняем новый файл
             var filePath = await _fileService.SaveFileAsync(file, "Reports", branch.Name, DateTime.Now.Year, template.Name);
-            
+
             if (existingReport != null)
             {
-                // Если отчет существует, обновляем его
                 if (!string.IsNullOrEmpty(existingReport.FilePath))
-                {
-                    // Удаляем старый файл
                     await _fileService.DeleteFileAsync(existingReport.FilePath);
-                }
 
                 existingReport.Name = file.FileName;
                 existingReport.FilePath = filePath;
@@ -143,120 +122,105 @@ namespace Core.Services
                 existingReport.UploadDate = DateTime.UtcNow;
                 existingReport.Period = deadline.Period;
 
-                var updatedReport = await _reportRepository.UpdateAsync(existingReport);
+                await _unitOfWork.Reports.UpdateAsync(existingReport);
 
-               
-                if (deadline != null)
-                {
-                    deadline.Status = ReportStatus.Draft;
-                    deadline.ReportId = updatedReport.Id;
-                    await _deadlineRepository.UpdateAsync(deadline);
-                }
+                deadline.Status = ReportStatus.Draft;
+                deadline.ReportId = existingReport.Id;
+                await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
 
-                return MapToDto(updatedReport);
-            }
-            else
-            {
-                // Если отчет не существует, создаем новый
-                var newReport = new Report
-                {
-                    Name = file.FileName,
-                    TemplateId = templateId,
-                    BranchId = branchId,
-                    UploadedById = uploadedById,
-                    FilePath = filePath,
-                    UploadDate = DateTime.UtcNow,
-                    Branch = branch,
-                    Template = template,
-                    Period = deadline.Period,
-                };
-
-                var createdReport = await _reportRepository.AddAsync(newReport);
-                var user = await _userRepository.GetAll(u => u.Include(r => r.Role)).
-                    Where(u => u.Id == uploadedById).FirstOrDefaultAsync();
-                // Обновляем дедлайн
                 
-                if (deadline != null)
-                {
-                    deadline.Status = ReportStatus.Draft;
-                    deadline.ReportId = createdReport.Id;
-                    await _deadlineRepository.UpdateAsync(deadline);
-                }
-                if (user.Role.RoleName != "User")
-                {
-                    await UpdateReportStatusAsync(createdReport.Id, ReportStatus.Reviewed);
-                }
-                return MapToDto(createdReport);
+
+                return MapToDto(existingReport);
             }
+
+            var newReport = new Report
+            {
+                Name = file.FileName,
+                TemplateId = templateId,
+                BranchId = branchId,
+                UploadedById = uploadedById,
+                FilePath = filePath,
+                UploadDate = DateTime.UtcNow,
+                Period = deadline.Period,
+                Branch = branch,
+                Template = template
+            };
+
+            var createdReport = await _unitOfWork.Reports.AddAsync(newReport);
+
+            deadline.Status = ReportStatus.Draft;
+            deadline.ReportId = createdReport.Id;
+            await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
+
+            var user = await _unitOfWork.Users.GetAll(u => u.Include(r => r.Role))
+                .Where(u => u.Id == uploadedById).FirstOrDefaultAsync();
+
+            if (user?.Role?.RoleName != "User")
+                await UpdateReportStatusAsync(createdReport.Id, ReportStatus.Reviewed);
+
+            
+
+            return MapToDto(createdReport);
         }
-
-
-        /// <summary>
-        /// Изменение статуса отчета (например, после проверки).
-        /// </summary> 
 
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
         {
-            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
             if (report == null) return false;
-            var deadline = await _deadlineRepository.FindAsync(r=>r.ReportTemplateId==report.TemplateId);
+
+            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(d => d.ReportTemplateId == report.TemplateId);
             if (deadline == null) return false;
 
-            
-            deadline.Status= newStatus;
-            if (!string.IsNullOrEmpty(remarks))
-                deadline.Comment = remarks;
-
-
+            deadline.Status = newStatus;
+            deadline.Comment = remarks;
 
             if (newStatus == ReportStatus.Reviewed)
             {
                 await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: Отчет принят");
+
                 await _deadlineService.CheckAndUpdateDeadlineAsync(deadline.ReportTemplateId);
+
                 deadline.Status = ReportStatus.InProgress;
-                deadline.ReportId = null; // Удаляем связь с отчетом
-                deadline.Comment = null; // Удаляем комментарий
-                var branchUsers = await _userRepository.FindAllAsync(u => u.BranchId == report.BranchId);
-                foreach (var user in branchUsers)
-                {
+                deadline.ReportId = null;
+                deadline.Comment = null;
+
+                var users = await _unitOfWork.Users.FindAllAsync(u => u.BranchId == report.BranchId);
+                foreach (var user in users)
                     await _notificationService.AddNotificationAsync(user.Id, $"Отчет '{report.Name}' был принят.");
-                }
             }
-            await _deadlineRepository.UpdateAsync(deadline);
+
+            await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
+            
 
             return true;
         }
 
-        /// <summary>
-        /// Добавление замечания к отчету (например, при проверке).
-        /// </summary>
         public async Task<bool> AddReportCommentAsync(int reportId, string comment)
         {
-            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
+            if (report == null) return false;
 
-            await _reportRepository.UpdateAsync(report);
-            var deadline = await _deadlineRepository.FindAsync(r => r.ReportTemplateId == report.TemplateId);
+            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(d => d.ReportTemplateId == report.TemplateId);
             if (deadline == null) return false;
 
             deadline.Status = ReportStatus.NeedsCorrection;
-            if (!string.IsNullOrWhiteSpace(comment))
-            {
-                deadline.Comment = comment;
-                var branchUsers = await _userRepository.FindAllAsync(u => u.BranchId == report.BranchId);
-                foreach (var user in branchUsers)
-                {
-                    await _notificationService.AddNotificationAsync(user.Id, $"К отчету '{report.Name}' был добавлен комментарий: \"{report.Comment}\"");
-                }
-            }
+            deadline.Comment = comment;
+
+            var users = await _unitOfWork.Users.FindAllAsync(u => u.BranchId == report.BranchId);
+            foreach (var user in users)
+                await _notificationService.AddNotificationAsync(user.Id, $"К отчету '{report.Name}' был добавлен комментарий: \"{comment}\"");
+
             await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: {comment}");
 
-            await _deadlineRepository.UpdateAsync(deadline);
+            await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
+            
+
             return true;
         }
 
         public async Task<byte[]> GetReportFileAsync(int reportId)
         {
-            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
                 throw new FileNotFoundException("Файл отчета не найден");
 
@@ -265,40 +229,30 @@ namespace Core.Services
 
         public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync(int? branchId)
         {
-            var query = _deadlineRepository.GetAll(q => q.Include(t => t.Template));
-
+            var query = _unitOfWork.SubmissionDeadlines.GetAll(q => q.Include(t => t.Template));
             if (branchId.HasValue)
                 query = query.Where(d => d.BranchId == branchId.Value);
 
             var deadlines = await query.ToListAsync();
 
-            var pendingTemplates = new List<PendingTemplateDto>();
-
-            foreach (var deadline in deadlines)
+            return deadlines.Select(d => new PendingTemplateDto
             {
-                if (deadline?.Template == null)
-                    continue;
-
-                pendingTemplates.Add(new PendingTemplateDto
-                {
-                    Id = deadline.Id,
-                    TemplateId = deadline.ReportTemplateId,
-                    TemplateName = deadline.Template?.Name ?? "Неизвестный шаблон",
-                    Deadline = deadline.DeadlineDate,
-                    ReportId = deadline.ReportId,
-                    Status = deadline.Status.ToString(),
-                    Comment = deadline.Comment,
-                    ReportType = deadline.Template.Type.ToString(),
-                    BranchId = deadline.BranchId
-                });
-            }
-
-            return pendingTemplates;
+                Id = d.Id,
+                TemplateId = d.ReportTemplateId,
+                TemplateName = d.Template?.Name ?? "Неизвестный шаблон",
+                Deadline = d.DeadlineDate,
+                ReportId = d.ReportId,
+                Status = d.Status.ToString(),
+                Comment = d.Comment,
+                ReportType = d.Template?.Type.ToString(),
+                BranchId = d.BranchId
+            }).ToList();
         }
+
 
         public async Task<Dictionary<string, Dictionary<string, List<List<string>>>>> ReadExcelFileAsync(int reportId)
         {
-            var report = await _reportRepository.FindAsync(r => r.Id == reportId);
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
                 throw new FileNotFoundException("Report file not found");
 
@@ -339,7 +293,7 @@ namespace Core.Services
         public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(
             string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType)
         {
-            var query = _reportRepository.GetAll();
+            var query = _unitOfWork.Reports.GetAll();
 
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(r => r.Name.Contains(name));

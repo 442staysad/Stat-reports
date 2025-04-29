@@ -12,20 +12,17 @@ namespace Core.Services
 {
     public class ReportTemplateService : IReportTemplateService
     {
-        private readonly IRepository<ReportTemplate> _reportTemplateRepository;
-        private readonly IRepository<SubmissionDeadline> _DeadlineRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IBranchService _branchService;
         private readonly IDeadlineService _deadlineService;
         private readonly IFileService _fileService;
 
-        public ReportTemplateService(IRepository<ReportTemplate> reportTemplateRepository, 
-            IRepository<SubmissionDeadline> deadlineRepository,
+        public ReportTemplateService(IUnitOfWork unitOfWork,
             IFileService fileService,
             IDeadlineService deadlineService,
             IBranchService branchService)
         {
-            _reportTemplateRepository = reportTemplateRepository;
-            _DeadlineRepository = deadlineRepository;
+            _unitOfWork = unitOfWork;
             _fileService = fileService;
             _deadlineService = deadlineService;
             _branchService = branchService;
@@ -33,23 +30,23 @@ namespace Core.Services
 
         public async Task<SubmissionDeadline> CreateSubmissionDeadlineAsync(SubmissionDeadline deadline)
         {
-            await _DeadlineRepository.AddAsync(deadline);
+            await _unitOfWork.SubmissionDeadlines.AddAsync(deadline);
             return deadline;
         }
         public async Task<IEnumerable<ReportTemplate>> GetAllReportTemplatesAsync()
         {
-            return await _reportTemplateRepository.GetAllAsync();
+            return await _unitOfWork.ReportTemplates.GetAllAsync();
         }
 
         public async Task<ReportTemplate> GetReportTemplateByIdAsync(int id)
         {
-            return await _reportTemplateRepository.FindAsync(r => r.Id == id);
+            return await _unitOfWork.ReportTemplates.FindAsync(r => r.Id == id);
         }
 
         public async Task<ReportTemplate> CreateReportTemplateAsync(ReportTemplate template,DeadlineType deadlineType,int FixedDay, DateTime ReportDate)
         {
             var branches = await _branchService.GetAllBranchesAsync();
-            await _reportTemplateRepository.AddAsync(template);
+            await _unitOfWork.ReportTemplates.AddAsync(template);
 
             foreach (var branch in branches)
             {
@@ -75,22 +72,22 @@ namespace Core.Services
                     case "Yearly": deadline.Period = ReportDate.AddYears(1); break;
                 }
                 // Сохранение дедлайна в базе данных
-                await _DeadlineRepository.AddAsync(deadline);
+                await _unitOfWork.SubmissionDeadlines.AddAsync(deadline);
             }
             return template;
         }
 
         public async Task<ReportTemplate> UpdateReportTemplateAsync(ReportTemplate template)
         {
-            await _reportTemplateRepository.UpdateAsync(template);
+            await _unitOfWork.ReportTemplates.UpdateAsync(template);
             return template;
         }
 
         public async Task<bool> DeleteReportTemplateAsync(int id)
         {
-            var template = await _reportTemplateRepository.FindAsync(r => r.Id == id);
+            var template = await _unitOfWork.ReportTemplates.FindAsync(r => r.Id == id);
             if (template == null) return false;
-            await _reportTemplateRepository.DeleteAsync(template);
+            await _unitOfWork.ReportTemplates.DeleteAsync(template);
             await _fileService.DeleteFileAsync(template.FilePath);
             return true;
         }

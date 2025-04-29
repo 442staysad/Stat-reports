@@ -9,22 +9,22 @@ namespace Core.Services
 {
     public class UserService : IUserService
     {
-        private readonly IRepository<User> _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher<User> _userpasswordHasher;
 
-        public UserService(IRepository<User> userRepository, IPasswordHasher<User> passwordHasher)
+        public UserService(IUnitOfWork unitOfWork, IPasswordHasher<User> passwordHasher)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
            _userpasswordHasher = passwordHasher;
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _userRepository.GetAllAsync();
+            return await _unitOfWork.Users.GetAllAsync();
         }
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync(int? branchId = null)
         {
-            var query = (await _userRepository.GetAll(u=>u.Include(r=>r.Role)).ToListAsync())
+            var query = (await _unitOfWork.Users.GetAll(u=>u.Include(r=>r.Role)).ToListAsync())
                         .Where(u => !branchId.HasValue || u.BranchId == branchId);
             return query.Select(u => new UserDto
             {
@@ -42,16 +42,16 @@ namespace Core.Services
 
         public async Task<User> GetUserByIdAsync(int id)
         {
-            return await _userRepository.FindAsync(u => u.Id == id);
+            return await _unitOfWork.Users.FindAsync(u => u.Id == id);
         }
         public async Task<IEnumerable<User>> GetUsersByBranchIdAsync(int branchId)
         {
-            return await _userRepository.FindAllAsync(u => u.BranchId == branchId);
+            return await _unitOfWork.Users.FindAllAsync(u => u.BranchId == branchId);
         }
 
         public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
         {
-            return await _userRepository.FindAllAsync(u => u.Role.RoleName == role);
+            return await _unitOfWork.Users.FindAllAsync(u => u.Role.RoleName == role);
         }
 
 
@@ -68,25 +68,25 @@ namespace Core.Services
                 BranchId = dto.BranchId
             };
             entity.PasswordHash = _userpasswordHasher.HashPassword(entity, dto.Password);
-            return await _userRepository.AddAsync(entity);
+            return await _unitOfWork.Users.AddAsync(entity);
         }
 
         public async Task<User> UpdateUserAsync(UserProfileDto dto)
         {
-            var user = await _userRepository.FindAsync(b => b.Id == dto.Id) ?? throw new Exception("Пользователь не найден.");
+            var user = await _unitOfWork.Users.FindAsync(b => b.Id == dto.Id) ?? throw new Exception("Пользователь не найден.");
             user.FullName = dto.FullName;
             user.Number = dto.Number;
             user.Email = dto.Email;
             user.Position = dto.Position;
 
-            return await _userRepository.UpdateAsync(user);
+            return await _unitOfWork.Users.UpdateAsync(user);
         }
 
         public async Task<bool> DeleteUserAsync(int id)
         {
-            var user = await _userRepository.FindAsync(u => u.Id == id);
+            var user = await _unitOfWork.Users.FindAsync(u => u.Id == id);
             if (user == null) return false;
-            await _userRepository.DeleteAsync(user);
+            await _unitOfWork.Users.DeleteAsync(user);
             return true;
         }
     }
