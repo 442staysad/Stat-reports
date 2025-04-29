@@ -27,41 +27,59 @@ namespace Core.Services
                               .Include(b => b.Branch))
                 .ToListAsync();
 
-        public async Task CheckAndUpdateDeadlineAsync(int templateId)
+        public async Task CheckAndUpdateDeadlineAsync(int templateId, int branchId)
         {
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
                 var repo = _unitOfWork.SubmissionDeadlines;
 
-                var deadline = await repo.FindAsync(d => d.ReportTemplateId == templateId && !d.IsClosed);
-                if (deadline == null) return;
+                // Находим последний закрытый дедлайн для данного шаблона и филиала
+                var lastDeadline = await repo.FindAsync(
+                    d => d.ReportTemplateId == templateId &&
+                         d.BranchId == branchId &&
+                         d.IsClosed,
+                    includes: q => q.Include(d => d.Template)
+                                  .Include(d => d.Branch));
 
-                var isAccepted = await repo
-                    .AnyAsync(r => r.ReportTemplateId == templateId && r.Status == ReportStatus.Reviewed);
-
-                if (isAccepted)
+                if (lastDeadline == null)
                 {
-                    deadline.DeadlineDate = CalculateNextDeadline(deadline);
-                    deadline.Status = ReportStatus.InProgress;
-
-                    deadline.Period = deadline.DeadlineType switch
-                    {
-                        DeadlineType.Monthly => deadline.Period.AddMonths(1),
-                        DeadlineType.Quarterly => deadline.Period.AddMonths(3),
-                        DeadlineType.HalfYearly => deadline.Period.AddMonths(6),
-                        DeadlineType.Yearly => deadline.Period.AddYears(1),
-                        _ => deadline.Period
-                    };
-
-                    await repo.UpdateAsync(deadline);
+                    _logger.LogWarning($"Не найден закрытый дедлайн для templateId: {templateId}, branchId: {branchId}");
+                    return;
                 }
+
+                // Проверяем, что отчет был принят (статус Reviewed)
+                if (lastDeadline.Status != ReportStatus.Reviewed)
+                {
+                    _logger.LogWarning($"Последний дедлайн не имеет статус Reviewed для templateId: {templateId}, branchId: {branchId}");
+                    return;
+                }
+
+                // Создаем новый дедлайн на основе предыдущего
+                var newDeadline = new SubmissionDeadline
+                {
+                    BranchId = branchId,
+                    ReportTemplateId = templateId,
+                    DeadlineType = lastDeadline.DeadlineType,
+                    FixedDay = lastDeadline.FixedDay,
+                    Comment = lastDeadline.Comment,
+                    Status = ReportStatus.InProgress,
+                    IsClosed = false,
+                    DeadlineDate = CalculateNextDeadline(lastDeadline),
+                    Period = CalculateNextPeriod(lastDeadline)
+                };
+
+                // Закрываем предыдущий дедлайн
+                lastDeadline.IsClosed = true;
+
+                await repo.UpdateAsync(lastDeadline);
+                await repo.AddAsync(newDeadline);
 
                 await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при обновлении дедлайна");
+                _logger.LogError(ex, "Ошибка при создании нового дедлайна");
                 await transaction.RollbackAsync();
                 throw;
             }
@@ -70,7 +88,31 @@ namespace Core.Services
         private DateTime AdjustDate(DateTime date, int fixedDay)
         {
             int daysInMonth = DateTime.DaysInMonth(date.Year, date.Month);
-            return new DateTime(date.Year, date.Month, Math.Min(fixedDay, daysInMonth - 1));
+            return new DateTime(date.Year, date.Month, Math.Min(fixedDay, daysInMonth));
+        }
+
+        private DateTime CalculateNextDeadline(SubmissionDeadline deadline)
+        {
+            return deadline.DeadlineType switch
+            {
+                DeadlineType.Monthly => AdjustDate(deadline.DeadlineDate.AddMonths(1), deadline.FixedDay ?? 30),
+                DeadlineType.Quarterly => AdjustDate(deadline.DeadlineDate.AddMonths(3), deadline.FixedDay ?? 30),
+                DeadlineType.HalfYearly => AdjustDate(deadline.DeadlineDate.AddMonths(6), deadline.FixedDay ?? 30),
+                DeadlineType.Yearly => AdjustDate(deadline.DeadlineDate.AddYears(1), deadline.FixedDay ?? 30),
+                _ => throw new ArgumentOutOfRangeException(nameof(deadline.DeadlineType))
+            };
+        }
+
+        private DateTime CalculateNextPeriod(SubmissionDeadline deadline)
+        {
+            return deadline.DeadlineType switch
+            {
+                DeadlineType.Monthly => deadline.Period.AddMonths(1),
+                DeadlineType.Quarterly => deadline.Period.AddMonths(3),
+                DeadlineType.HalfYearly => deadline.Period.AddMonths(6),
+                DeadlineType.Yearly => deadline.Period.AddYears(1),
+                _ => throw new ArgumentOutOfRangeException(nameof(deadline.DeadlineType))
+            };
         }
 
         public DateTime CalculateDeadline(DeadlineType deadlineType, int fixedDay, DateTime reportDate)
@@ -84,7 +126,7 @@ namespace Core.Services
                 _ => throw new ArgumentOutOfRangeException(nameof(deadlineType))
             };
         }
-
+        /*
         private DateTime CalculateNextDeadline(SubmissionDeadline deadline)
         {
             return deadline.DeadlineType switch
@@ -95,6 +137,6 @@ namespace Core.Services
                 DeadlineType.Yearly => AdjustDate(deadline.DeadlineDate.AddYears(1), deadline.FixedDay ?? 30),
                 _ => DateTime.UtcNow
             };
-        }
+        }*/
     }
 }

@@ -165,57 +165,95 @@ namespace Core.Services
 
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
         {
-            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
-            if (report == null) return false;
-
-            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(d => d.ReportTemplateId == report.TemplateId);
-            if (deadline == null) return false;
-
-            deadline.Status = newStatus;
-            deadline.Comment = remarks;
-
-            if (newStatus == ReportStatus.Reviewed)
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: Отчет принят");
+                var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
+                if (report == null) return false;
 
-                await _deadlineService.CheckAndUpdateDeadlineAsync(deadline.ReportTemplateId);
+                // Находим активный (не закрытый) дедлайн для этого отчета
+                var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(
+                    d => d.ReportTemplateId == report.TemplateId &&
+                         d.ReportId==reportId&&
+                         d.BranchId == report.BranchId &&
+                         !d.IsClosed,
+                    includes: q => q.Include(d => d.Branch));
 
-                deadline.Status = ReportStatus.InProgress;
-                deadline.ReportId = null;
-                deadline.Comment = null;
+                if (deadline == null) return false;
 
-                var users = await _unitOfWork.Users.FindAllAsync(u => u.BranchId == report.BranchId);
-                foreach (var user in users)
-                    await _notificationService.AddNotificationAsync(user.Id, $"Отчет '{report.Name}' был принят.");
+                deadline.Status = newStatus;
+                deadline.Comment = remarks;
+
+                if (newStatus == ReportStatus.Reviewed)
+                {
+                    // Помечаем текущий дедлайн как закрытый
+                    deadline.IsClosed = true;
+                    deadline.ReportId = reportId; // Связываем с отчетом
+
+                    // Создаем новый дедлайн вместо обновления
+                    await _deadlineService.CheckAndUpdateDeadlineAsync(
+                        report.TemplateId,
+                        (int)report.BranchId);
+
+                    var users = await _unitOfWork.Users.FindAllAsync(
+                        u => u.BranchId == report.BranchId);
+
+                    await _notificationService.AddNotificationAsync(
+                        (int)report.UploadedById,
+                        $"Отчет '{report.Name}' за период '{report.Period:yyyy-MM-dd}' был принят.");
+                }
+
+                await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
+                await transaction.CommitAsync();
+
+                return true;
             }
-
-            await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
-            
-
-            return true;
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> AddReportCommentAsync(int reportId, string comment)
         {
-            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
-            if (report == null) return false;
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
+                if (report == null) return false;
 
-            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(d => d.ReportTemplateId == report.TemplateId);
-            if (deadline == null) return false;
+                // Находим активный дедлайн для этого шаблона и филиала
+                var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(
+                    d => d.ReportTemplateId == report.TemplateId &&
+                         d.BranchId == report.BranchId &&
+                         d.ReportId == reportId &&
+                         !d.IsClosed);
 
-            deadline.Status = ReportStatus.NeedsCorrection;
-            deadline.Comment = comment;
+                if (deadline == null) return false;
 
-            var users = await _unitOfWork.Users.FindAllAsync(u => u.BranchId == report.BranchId);
-            foreach (var user in users)
-                await _notificationService.AddNotificationAsync(user.Id, $"К отчету '{report.Name}' был добавлен комментарий: \"{comment}\"");
+                deadline.Status = ReportStatus.NeedsCorrection;
+                deadline.Comment = comment;
+                deadline.ReportId = reportId; // Связываем с отчетом
 
-            await _notificationService.AddNotificationAsync((int)report.UploadedById, $"{report.Name}: {comment}");
+                var users = await _unitOfWork.Users.FindAllAsync(
+                    u => u.BranchId == report.BranchId);
 
-            await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
-            
 
-            return true;
+                await _notificationService.AddNotificationAsync(
+                    (int)report.UploadedById,
+                    $"{report.Name}: {comment}");
+
+                await _unitOfWork.SubmissionDeadlines.UpdateAsync(deadline);
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<byte[]> GetReportFileAsync(int reportId)

@@ -63,13 +63,15 @@ namespace Core.Services
                     DeadlineType = deadlineType,
                     DeadlineDate = deadlineDate,
                     IsClosed = false,
+                    FixedDay = FixedDay,
+                    
                 };
-                switch (deadlineType.ToString())
+                switch (deadlineType)
                 {
-                    case "Monthly" : deadline.Period = ReportDate.AddMonths(1); break;
-                    case "Quarterly" : deadline.Period = ReportDate.AddMonths(3); break;
-                    case "HalfYearly": deadline.Period = ReportDate.AddMonths(6); break;
-                    case "Yearly": deadline.Period = ReportDate.AddYears(1); break;
+                    case DeadlineType.Monthly : deadline.Period = ReportDate.AddMonths(1); break;
+                    case DeadlineType.Quarterly : deadline.Period = ReportDate.AddMonths(3); break;
+                    case DeadlineType.HalfYearly: deadline.Period = ReportDate.AddMonths(6); break;
+                    case DeadlineType.Yearly: deadline.Period = ReportDate.AddYears(1); break;
                 }
                 // Сохранение дедлайна в базе данных
                 await _unitOfWork.SubmissionDeadlines.AddAsync(deadline);
