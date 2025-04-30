@@ -83,23 +83,26 @@ namespace Stat_reports.Controllers
         }
 
 
-        public async Task<IActionResult> PreviewExcel(int reportid,int deadlineId)
+        public async Task<IActionResult> PreviewExcel(int reportId, int? deadlineId , bool isArchive = false)
         {
-            var report = await _reportService.GetReportByIdAsync(reportid);
+            var report = await _reportService.GetReportByIdAsync(reportId);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
                 return NotFound("Файл отчета не найден");
+
             var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
-            var excelData = await _reportService.ReadExcelFileAsync(reportid);
+            var excelData = await _reportService.ReadExcelFileAsync(reportId);
+
             var model = new ExcelPreviewViewModel
             {
-                ReportType=report.Type==ReportType.Accountant?"OBUnF":"PEB",
+                ReportType = report.Type == ReportType.Accountant ? "OBUnF" : "PEB",
                 BranchName = branch.Name,
-                DeadlineId = deadlineId,
-                ReportId = reportid,
+                DeadlineId = deadlineId, // может быть null
+                ReportId = reportId,
                 ReportName = report.Name,
                 ExcelData = excelData,
-                Comment = report.Comment, // Load existing comment
-                Status = report.Status // Load existing status
+                Comment = report.Comment,
+                Status = report.Status,
+                IsArchive = isArchive 
             };
 
             return View(model);

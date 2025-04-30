@@ -17,6 +17,15 @@ a {
   border-color: #1861ac;
 }
 
+.btn-outline-secondary {
+    color: #ffffff;
+    border-color: #cccccc;
+}
+
+    .btn-outline-secondary:hover {
+        background-color: #cccccc;
+        color: #003366;
+    }
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
   color: #fff;
   background-color: #1b6ec2;
@@ -38,11 +47,60 @@ button.accept-policy {
   font-size: 1rem;
   line-height: inherit;
 }
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+body {
+    background: linear-gradient(to right, #003366, #0066cc);
+    color: white;
+    min-height: 100vh;
+    padding-top: 70px;
 }
+
+.navbar {
+    background-color: #002244 !important;
+}
+
+.navbar-brand,
+.nav-link,
+.dropdown-item {
+    color: white !important;
+}
+
+    .nav-link.active,
+    .dropdown-item.active {
+        background-color: #ffcc00 !important;
+        color: #003366 !important;
+    }
+
+.main-content {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    margin: auto;
+    max-width: 1200px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+footer {
+    background-color: #002244;
+    color: white;
+    padding: 20px 0;
+}
+
+.badge {
+    font-size: 0.85rem;
+}
+
+.navbar-nav .nav-item {
+    margin-right: 1.2rem; /* увеличенный отступ между вкладками */
+}
+
+
+.dropdown-menu {
+    background-color: #003366;
+}
+
+.dropdown-item:hover {
+    background-color: #ffcc00;
+    color: #003366 !important;
+}
+
+

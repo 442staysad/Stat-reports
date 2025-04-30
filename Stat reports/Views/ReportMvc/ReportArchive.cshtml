@@ -4,93 +4,9 @@
     ViewData["Title"] = "Архив отчетов";
 }
 
+
 @section Styles {
-<style>
-    body {
-    background: linear-gradient(to right, #003366, #0066cc);
-    color: white;
-    min-height: 100vh;
-    padding-top: 40px;
-    padding-bottom: 40px;
-    }
-
-    .archive-container {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 30px;
-    border-radius: 15px;
-    max-width: 1400px;
-    margin: auto;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    }
-
-    .table thead {
-    background-color: #002244 !important;
-    color: white;
-    }
-
-    .table tbody {
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #000;
-    }
-
-    .form-label {
-    color: #fff;
-    }
-
-    .btn-outline-primary {
-    border-color: #ffcc00;
-    color: #ffcc00;
-    }
-
-    .btn-outline-primary:hover {
-    background-color: #ffcc00;
-    color: #003366;
-    }
-
-    .badge {
-    font-size: 0.9rem;
-    }
-
-        .report-badge {
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-weight: 500;
-            border: 2px solid;
-        }
-
-            .report-badge.plan {
-                border-color: #007bff; /* синий */
-                color: #007bff;
-            }
-
-            .report-badge.accounting {
-                border-color: #28a745; /* зеленый */
-                color: #28a745;
-            }
-</style>
-}
-
-@section Scripts {
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const reportTypeSelect = document.getElementById('reportType');
-    const templateSelect = document.getElementById('templateId');
-    const allTemplates = Array.from(templateSelect.options).filter(opt => opt.value !== "");
-
-    function filterTemplatesByType(type) {
-    templateSelect.innerHTML = '<option value="">Все</option>';
-    const filtered = allTemplates.filter(opt => opt.dataset.type === type || type === "");
-    filtered.forEach(opt => templateSelect.appendChild(opt));
-    }
-
-    reportTypeSelect.addEventListener('change', () => {
-    filterTemplatesByType(reportTypeSelect.value);
-    });
-
-    // Инициализировать при загрузке (на случай возврата после фильтрации)
-    filterTemplatesByType(reportTypeSelect.value);
-    });
-</script>
+<link rel="stylesheet" href="~/css/archive.css" />
 }
 
 <div class="archive-container">
@@ -164,8 +80,9 @@
             <input type="date" class="form-control" id="endDate" name="endDate" value="@Model.Filter.EndDate?.ToString("yyyy-MM-dd")" />
         </div>
 
-        <div class="col-md-2 align-self-end">
+        <div class="col-md-2 align-self-end d-flex gap-2">
             <button type="submit" class="btn btn-outline-primary w-100">🔍 Фильтровать</button>
+            <button type="button" id="resetFilters" class="btn btn-outline-secondary w-100">↺ Сбросить</button>
         </div>
     </form>
 
@@ -187,36 +104,49 @@
                     <tr>
                         <td>@report.Name</td>
                         <td>
-                            @if (report.Type.ToString() == "Plan")
+                            @switch (report.Type)
                             {
-                                <span class="report-badge plan">Плановый</span>
+                                case ReportType.Accountant:
+                                    <span class="report-badge accountant">Бухгалтерский</span>
+                                    break;
+                                case ReportType.Plan:
+                                    <span class="report-badge plan">Плановый</span>
+
+                                    break;
                             }
-                            else
-                            {
-                                <span class="report-badge accounting">Бухгалтерский</span>
-                            }
+
                         </td>
                         <td>@Model.Branches.FirstOrDefault(b => b.Id == report.BranchId)?.Name</td>
                         <td>@report.Period.ToString("dd.MM.yyyy")</td>
                         <td>
                             @if (!string.IsNullOrEmpty(report.Comment))
                             {
-                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#commentModal-@report.Id">
+                                <button type="button" 
+                                    class="btn btn-sm btn-info" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#commentModal-@report.Id">
                                     Комментарий
                                 </button>
 
-                                <div class="modal fade" id="commentModal-@report.Id" tabindex="-1" aria-labelledby="modalLabel-@report.Id" aria-hidden="true">
+                                <div class="modal fade" id="commentModal-@report.Id" 
+                                tabindex="-1"
+                                aria-labelledby="modalLabel-@report.Id"
+                                aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="modalLabel-@report.Id">Комментарий</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                                                <button type="button" class="btn-close" 
+                                                data-bs-dismiss="modal" 
+                                                aria-label="Закрыть"></button>
                                             </div>
                                             <div class="modal-body">
                                                 @report.Comment
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                                <button type="button" 
+                                                    class="btn btn-secondary" 
+                                                    data-bs-dismiss="modal">Закрыть</button>
                                             </div>
                                         </div>
                                     </div>
@@ -224,6 +154,12 @@
                             }
                         </td>
                         <td>
+                            <a asp-action="PreviewExcel" 
+                            asp-route-reportId="@report.Id" 
+                            asp-route-isArchive="@true"
+                            class="btn btn-sm btn-primary">
+                                Просмотр
+                            </a>
                             <a asp-action="DownloadReport"
                                asp-route-reportname="@report.Name"
                                asp-route-reportId="@report.Id"
@@ -244,3 +180,47 @@
         </table>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const reportTypeSelect = document.getElementById('reportType');
+            const templateSelect = document.getElementById('templateId');
+            const allTemplates = Array.from(templateSelect.options).filter(opt => opt.value !== "");
+
+            function filterTemplatesByType(type) {
+                templateSelect.innerHTML = '<option value="">Все</option>';
+                const filtered = allTemplates.filter(opt => opt.dataset.type === type || type === "");
+                filtered.forEach(opt => templateSelect.appendChild(opt));
+            }
+
+            reportTypeSelect.addEventListener('change', () => {
+                filterTemplatesByType(reportTypeSelect.value);
+            });
+
+            // Инициализировать при загрузке (на случай возврата после фильтрации)
+            filterTemplatesByType(reportTypeSelect.value);
+
+            // Сброс фильтров
+            document.getElementById('resetFilters').addEventListener('click', () => {
+                const form = document.querySelector('form[method="get"]');
+
+                // Сбросить текстовые и date поля
+                form.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+
+                // Сбросить select-поля
+                form.querySelectorAll('select').forEach(select => {
+                    if (!select.disabled) {
+                        select.selectedIndex = 0;
+                    }
+                });
+
+                // Обновить шаблоны
+                filterTemplatesByType("");
+
+                // Отправить форму
+                form.submit();
+            });
+        });
+    </script>
+}

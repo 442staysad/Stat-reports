@@ -27,7 +27,9 @@ namespace Infrastructure.Data
                 new() { RoleName = "Admin" },
                 new() { RoleName = "PEB" },
                 new() { RoleName = "OBUnF" },
-                new() { RoleName = "User" }
+                new() { RoleName = "User" },
+                new() { RoleName = "AdminBranch" },
+                new() { RoleName = "AdminTrest" }
             };
                 await context.SystemRoles.AddRangeAsync(roles);
                 await context.SaveChangesAsync();

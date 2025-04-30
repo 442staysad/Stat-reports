@@ -161,11 +161,11 @@
                                                                 </div>
                                                             </form>
                                                         }
-                                                        <a asp-action="PreviewExcel" asp-route-reportid="@item.ReportId" asp-route-deadlinetId="@item.DeadlineId" class="btn btn-sm btn-primary">
-                                                            <i class="bi bi-eye"></i> Просмотр
+                                                        <a asp-action="PreviewExcel" asp-route-reportId="@item.ReportId" asp-route-deadlineId="@item.DeadlineId" class="btn btn-sm btn-primary">
+                                                             Просмотр
                                                         </a>
                                                         <a asp-action="DownloadReport" asp-route-reportname="@item.TemplateName" asp-route-reportId="@item.ReportId" class="btn btn-sm btn-primary">
-                                                            <i class="bi bi-download"></i> Скачать
+                                                             Скачать
                                                         </a>
                                                     }
                                                     else if (item.Status == "InProgress" && item.BranchId == branchId)
@@ -211,43 +211,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const typeTabs = document.querySelectorAll('#reportTypeTabs .nav-link');
-            const branchTabs = document.querySelectorAll('#branchTabs .nav-link');
-
-            // Функция фильтрации строк по reportType для всех табов филиалов
-            function filterAllBranches(reportType) {
-                document.querySelectorAll('.tab-pane').forEach(pane => {
-                    pane.querySelectorAll('tbody tr').forEach(row => {
-                        const rowType = row.getAttribute('data-report-type');
-                        row.style.display = (!reportType || rowType === reportType) ? '' : 'none';
-                    });
-                });
-            }
-
-            // хук на клики табов типов
-            typeTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    typeTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    const rt = tab.getAttribute('data-report-type');
-                    filterAllBranches(rt);
-                });
-            });
-
-            // при переключении филиала — повторно применяем текущий фильтр
-            branchTabs.forEach(tab => {
-                tab.addEventListener('shown.bs.tab', () => {
-                    const activeTypeTab = document.querySelector('#reportTypeTabs .nav-link.active');
-                    const rt = activeTypeTab.getAttribute('data-report-type');
-                    filterAllBranches(rt);
-                });
-            });
-
-            // инициализация: все, без фильтра
-            filterAllBranches('');
-        });
-
-    </script>
+    <script src="~/js/pending.js"></script>
 }
