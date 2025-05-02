@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using Core.Enums;
 namespace Core.Entities
 {
@@ -19,11 +18,15 @@ namespace Core.Entities
         public DateTime Period { get; set; }
 
         public int? FixedDay { get; set; } // Например, 26-е число (если есть)
-        public string? Comment { get; set; }
+        [NotMapped] // Текущий комментарий не хранится отдельно, а берется из последней записи истории
+        public string? Comment => CommentHistory.OrderByDescending(h => h.CreatedAt)
+                                               .FirstOrDefault()?.Comment;
+        // Навигационное свойство для истории
+        public ICollection<CommentHistory> CommentHistory { get; set; }
+            = new List<CommentHistory>();
+
         public bool IsClosed { get; set; } // Новый флаг
-
-        public int? ReportStatusId { get; set; } = 4;
-
         public ReportStatus? Status { get; set; } = ReportStatus.InProgress;
+
     }
 }

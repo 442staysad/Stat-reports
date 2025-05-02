@@ -182,7 +182,7 @@ namespace Core.Services
                 if (deadline == null) return false;
 
                 deadline.Status = newStatus;
-                deadline.Comment = remarks;
+                //коммент
 
                 if (newStatus == ReportStatus.Reviewed)
                 {
@@ -233,7 +233,7 @@ namespace Core.Services
                 if (deadline == null) return false;
 
                 deadline.Status = ReportStatus.NeedsCorrection;
-                deadline.Comment = comment;
+                //коммент
                 deadline.ReportId = reportId; // Связываем с отчетом
 
                 var users = await _unitOfWork.Users.FindAllAsync(
@@ -331,7 +331,7 @@ namespace Core.Services
         public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(
             string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType)
         {
-            var query = _unitOfWork.Reports.GetAll();
+            var query = _unitOfWork.Reports.GetAll(includes:r=>r.Include(d=>d.Branch));
 
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(r => r.Name.Contains(name));
@@ -362,7 +362,6 @@ namespace Core.Services
                 BranchId = r.BranchId,
                 TemplateId = r.TemplateId,
                 FilePath = r.FilePath,
-                Comment = r.Comment,
                 Period = r.Period,
                 Type = r.Type
             }).ToList();
@@ -379,7 +378,6 @@ namespace Core.Services
                 UploadedById = report.UploadedById ?? 0, // Fix for nullable type
                 BranchId = report.BranchId,
                 TemplateId = report.TemplateId,
-                Comment = report.Comment,
                 Period = report.Period,
                 UploadDate = report.UploadDate,
                 Type =report.Type
@@ -397,7 +395,6 @@ namespace Core.Services
                 UploadedById = reportDto.UploadedById,
                 BranchId = reportDto.BranchId ?? 0,
                 TemplateId = reportDto.TemplateId ?? 0,
-                Comment = reportDto.Comment,
                 Period = reportDto.Period,
                 Type = reportDto.Type
             };

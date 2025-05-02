@@ -18,6 +18,7 @@ namespace Infrastructure.Repository
         public IRepository<SummaryReport> SummaryReports { get; }
         public IRepository<SystemRole> SystemRoles { get; }
         public IRepository<Notification> Notifications { get; }
+        public IRepository<CommentHistory> CommentHistory { get; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -31,6 +32,7 @@ namespace Infrastructure.Repository
             SummaryReports = new Repository<SummaryReport>(_context);
             SystemRoles = new Repository<SystemRole>(_context);
             Notifications = new Repository<Notification>(_context);
+            CommentHistory = new Repository<CommentHistory>(_context);
         }
 
         public async Task<int> SaveChangesAsync()

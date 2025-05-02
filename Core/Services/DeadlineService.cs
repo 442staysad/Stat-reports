@@ -62,7 +62,6 @@ namespace Core.Services
                     ReportTemplateId = templateId,
                     DeadlineType = lastDeadline.DeadlineType,
                     FixedDay = lastDeadline.FixedDay,
-                    Comment = lastDeadline.Comment,
                     Status = ReportStatus.InProgress,
                     IsClosed = false,
                     DeadlineDate = CalculateNextDeadline(lastDeadline),

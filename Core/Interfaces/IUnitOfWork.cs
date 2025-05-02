@@ -18,6 +18,7 @@ namespace Core.Interfaces
         IRepository<SummaryReport> SummaryReports { get; }
         IRepository<SystemRole> SystemRoles { get; }
         IRepository<Notification> Notifications { get; }
+        IRepository<CommentHistory> CommentHistory { get; }
 
         Task<int> SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

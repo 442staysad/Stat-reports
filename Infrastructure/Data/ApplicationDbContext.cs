@@ -11,6 +11,7 @@ using System.Collections.Generic;
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {  }
 
+        public DbSet<CommentHistory> CommentHistory { get; set; } // Добавлено для истории комментариев
         public DbSet<User> Users { get; set; }
         public DbSet<Branch> Branches { get; set; }
         public DbSet<ReportTemplate> ReportTemplates { get; set; }

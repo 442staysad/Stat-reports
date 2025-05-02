@@ -15,7 +15,7 @@ namespace Core.Entities
         public int? DeadlineId { get; set; }
         public SubmissionDeadline? Deadline { get; set; }
 
-        public string Text { get; set; }
+        public string Comment { get; set; }
         public ReportStatus Status { get; set; }
 
         public int? AuthorId { get; set; }
