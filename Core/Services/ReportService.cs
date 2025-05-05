@@ -162,7 +162,7 @@ namespace Core.Services
 
             return MapToDto(createdReport);
         }
-
+        
         public async Task<bool> UpdateReportStatusAsync(int deadlineId, int reportId, ReportStatus newStatus)
         {
             using var transaction = await _unitOfWork.BeginTransactionAsync();
@@ -375,6 +375,17 @@ namespace Core.Services
                 Period = r.Period,
                 Type = r.Type
             }).ToList();
+        }
+
+        public async Task<ReportDto> ReopenReportAsync(int reportid)
+        {
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportid);
+            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(d => d.ReportId == reportid);
+            if (report == null|| deadline==null) return null;
+            report.IsClosed = false;
+            deadline.IsClosed = false;
+            await _unitOfWork.Reports.UpdateAsync(report);
+            return MapToDto(report);
         }
 
         private ReportDto MapToDto(Report report)

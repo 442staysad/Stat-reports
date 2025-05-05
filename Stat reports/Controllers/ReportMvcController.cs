@@ -235,6 +235,14 @@ namespace Stat_reports.Controllers
             return RedirectToAction( "ReportArchive","ReportMvc");
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        public async Task<IActionResult> ReopenReport(int reportId)
+        {
+            await _reportService.ReopenReportAsync(reportId);
+            return View();
+        }
+
         [HttpGet("download/{reportId}")]
         public async Task<IActionResult> DownloadReport(int reportId, string reportname)
         {
