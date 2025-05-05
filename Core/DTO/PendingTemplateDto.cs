@@ -8,15 +8,24 @@ using Core.Enums;
 
 namespace Core.DTO
 {
-    public class PendingTemplateDto:BaseDTO
+    public class PendingTemplateDto : BaseDTO
     {
         public int TemplateId { get; set; }
         public string TemplateName { get; set; }
         public DateTime Deadline { get; set; }
-        public string? Status { get; set; }
+        public ReportStatus Status { get; set; }
         public string? Comment { get; set; }
         public int? ReportId { get; set; } // ID загруженного отчета (если есть)
         public string ReportType { get; set; }
-        public int? BranchId { get; internal set; }
+        public int? BranchId { get; set; }
+
+        // Новое поле: история комментариев
+        public List<CommentHistoryDto> CommentHistory { get; set; } = new();
+    }
+
+    public class CommentHistoryDto
+    {
+        public DateTime CreatedAt { get; set; }
+        public string Comment { get; set; }
     }
 }

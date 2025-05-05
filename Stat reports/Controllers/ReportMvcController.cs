@@ -96,7 +96,7 @@ namespace Stat_reports.Controllers
             {
                 ReportType = report.Type == ReportType.Accountant ? "OBUnF" : "PEB",
                 BranchName = branch.Name,
-                DeadlineId = deadlineId, // может быть null
+                DeadlineId = deadlineId,
                 ReportId = reportId,
                 ReportName = report.Name,
                 ExcelData = excelData,
@@ -110,9 +110,9 @@ namespace Stat_reports.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin,PEB,OBUnF")]
-        public async Task<IActionResult> AddComment(int reportId, string comment)
+        public async Task<IActionResult> AddComment(int deadlineId, int reportId, string comment)
         {
-            await _reportService.AddReportCommentAsync(reportId, comment);
+            await _reportService.AddReportCommentAsync(deadlineId,reportId, comment, HttpContext.Session.GetInt32("UserId"));
             //await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
             return RedirectToAction(nameof(WorkingReports));
         }
@@ -182,9 +182,9 @@ namespace Stat_reports.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin,PEB,OBUnF")]
-        public async Task<IActionResult> AcceptReport(int reportId)
+        public async Task<IActionResult> AcceptReport(int deadlineId, int reportId)
         {
-            await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.Reviewed);
+            await _reportService.UpdateReportStatusAsync(deadlineId,reportId, ReportStatus.Reviewed);
             return RedirectToAction(nameof(WorkingReports));
         }
 

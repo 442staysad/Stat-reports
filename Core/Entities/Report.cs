@@ -19,5 +19,6 @@ namespace Core.Entities
         public string FilePath { get; set; }//название отчета
 
         public ReportType Type { get; set; } // Тип отчета (план/факт)
+        public bool IsClosed { get; set; } // Закрыт ли отчет
     }
 }

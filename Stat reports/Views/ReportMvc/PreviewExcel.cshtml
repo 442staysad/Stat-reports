@@ -21,6 +21,7 @@
         <div class="action-section">
             <h4 class="mb-3">Действия с отчетом</h4>
             <form asp-action="AddComment" method="post" class="mb-4">
+                <input type="hidden" name="deadlineId" id="deadlineId" value="@Model.DeadlineId" />
                 <input type="hidden" name="reportId" id="reportId" value="@Model.ReportId" />
                 <div class="mb-3">
                     <label for="comment" class="form-label">Комментарий</label>
@@ -34,7 +35,8 @@
 
             <div class="d-flex gap-2">
                 <form asp-action="AcceptReport" method="post" class="mb-2">
-                    <input type="hidden" name="reportId" value="@Model.ReportId" />
+                    <input type="hidden" name="deadlineId" id="deadlineId" value="@Model.DeadlineId" />
+                    <input type="hidden" name="reportId" id="reportId" value="@Model.ReportId" />
                     <button type="submit" class="btn btn-success">
                         Принять отчет
                     </button>

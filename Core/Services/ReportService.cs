@@ -156,14 +156,14 @@ namespace Core.Services
                 .Where(u => u.Id == uploadedById).FirstOrDefaultAsync();
 
             if (user?.Role?.RoleName != "User")
-                await UpdateReportStatusAsync(createdReport.Id, ReportStatus.Reviewed);
+                await UpdateReportStatusAsync(deadline.Id,createdReport.Id, ReportStatus.Reviewed);
 
             
 
             return MapToDto(createdReport);
         }
 
-        public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null)
+        public async Task<bool> UpdateReportStatusAsync(int deadlineId, int reportId, ReportStatus newStatus)
         {
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
@@ -173,10 +173,7 @@ namespace Core.Services
 
                 // Находим активный (не закрытый) дедлайн для этого отчета
                 var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(
-                    d => d.ReportTemplateId == report.TemplateId &&
-                         d.ReportId==reportId&&
-                         d.BranchId == report.BranchId &&
-                         !d.IsClosed,
+                    d => d.Id==deadlineId,
                     includes: q => q.Include(d => d.Branch));
 
                 if (deadline == null) return false;
@@ -215,7 +212,7 @@ namespace Core.Services
             }
         }
 
-        public async Task<bool> AddReportCommentAsync(int reportId, string comment)
+        public async Task<bool> AddReportCommentAsync(int deadlinId, int reportId, string comment, int? authorId)
         {
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
@@ -223,22 +220,23 @@ namespace Core.Services
                 var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
                 if (report == null) return false;
 
-                // Находим активный дедлайн для этого шаблона и филиала
                 var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(
-                    d => d.ReportTemplateId == report.TemplateId &&
-                         d.BranchId == report.BranchId &&
-                         d.ReportId == reportId &&
-                         !d.IsClosed);
+                    d => d.Id==deadlinId);
 
                 if (deadline == null) return false;
 
                 deadline.Status = ReportStatus.NeedsCorrection;
-                //коммент
-                deadline.ReportId = reportId; // Связываем с отчетом
 
-                var users = await _unitOfWork.Users.FindAllAsync(
-                    u => u.BranchId == report.BranchId);
+                var commentHistory = new CommentHistory
+                {
+                    Comment = comment,
+                    CreatedAt = DateTime.Now,
+                    DeadlineId = deadline.Id,
+                    ReportId = deadline.ReportId,
+                    AuthorId = authorId
+                };
 
+                await _unitOfWork.CommentHistory.AddAsync(commentHistory);
 
                 await _notificationService.AddNotificationAsync(
                     (int)report.UploadedById,
@@ -249,7 +247,7 @@ namespace Core.Services
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
@@ -267,9 +265,13 @@ namespace Core.Services
 
         public async Task<List<PendingTemplateDto>> GetPendingTemplatesAsync(int? branchId)
         {
-            var query = _unitOfWork.SubmissionDeadlines.GetAll(q => q.Include(t => t.Template));
+            var query = _unitOfWork.SubmissionDeadlines
+                .GetAll(q => q
+                    .Include(t => t.Template)
+                    .Include(d => d.CommentHistory)); // Подгружаем историю комментариев
+
             if (branchId.HasValue)
-                query = query.Where(d => d.BranchId == branchId.Value);
+                query = query.Where(d => d.BranchId == branchId.Value && !d.IsClosed);
 
             var deadlines = await query.ToListAsync();
 
@@ -280,10 +282,18 @@ namespace Core.Services
                 TemplateName = d.Template?.Name ?? "Неизвестный шаблон",
                 Deadline = d.DeadlineDate,
                 ReportId = d.ReportId,
-                Status = d.Status.ToString(),
+                Status = (ReportStatus)d.Status,
                 Comment = d.Comment,
                 ReportType = d.Template?.Type.ToString(),
-                BranchId = d.BranchId
+                BranchId = d.BranchId,
+                CommentHistory = d.CommentHistory?
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Select(c => new CommentHistoryDto
+                    {
+                        CreatedAt = c.CreatedAt,
+                        Comment = c.Comment
+                    })
+                    .ToList() ?? new List<CommentHistoryDto>() // защита от null
             }).ToList();
         }
 
@@ -332,7 +342,7 @@ namespace Core.Services
             string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType)
         {
             var query = _unitOfWork.Reports.GetAll(includes:r=>r.Include(d=>d.Branch));
-
+            query = query.Where(rp => rp.IsClosed);
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(r => r.Name.Contains(name));
 

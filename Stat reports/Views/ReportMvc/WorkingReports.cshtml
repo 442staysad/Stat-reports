@@ -7,6 +7,10 @@
     var visibleBranches = isGlobalUser
         ? Model.Select(m => new { m.BranchId, m.BranchName }).Distinct().ToList()
         : Model.Where(m => m.BranchId == branchId).Select(m => new { m.BranchId, m.BranchName }).Distinct().ToList();
+    var draftCounts = Model
+        .Where(m => m.Status == ReportStatus.Draft)
+        .GroupBy(m => m.BranchId)
+        .ToDictionary(g => g.Key, g => g.Count());
 }
 
 @section Styles {
@@ -57,7 +61,14 @@
                             role="tab"
                             aria-controls="branch-@branch.BranchId"
                             aria-selected="@(i == 0 ? "true" : "false")">
-                        @branch.BranchName 
+
+                        <span class="d-inline-flex align-items-center gap-1">
+                            @branch.BranchName
+                            @if (draftCounts.TryGetValue(branch.BranchId, out var count) && count > 0)
+                            {
+                                <span class="badge bg-danger rounded-pill">@count</span>
+                            }
+                        </span>
                     </button>
                 </li>
             }
@@ -91,22 +102,9 @@
                                             <td>@item.TemplateName</td>
                                             <td>@item.Deadline.ToString("dd.MM.yyyy")</td>
                                             <td>
-                                                @if (item.Status == "InProgress")
-                                                {
-                                                    <span class="badge bg-secondary">В работе</span>
-                                                }
-                                                else if (item.Status == "NeedsCorrection")
-                                                {
-                                                    <span class="badge bg-warning text-dark">Необходима корректировка</span>
-                                                }
-                                                else if (item.Status == "Reviewed")
-                                                {
-                                                    <span class="badge bg-success">Принято</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-light text-dark">Черновик</span>
-                                                }
+                                                <span class="badge @(item.Status != null ? ReportStatusHelper.GetCssClass(item.Status) : "bg-secondary")">
+                                                    @(item.Status != null ? item.Status.GetDisplayName() : "Неизвестно")
+                                                </span>
                                             </td>
                                             <td>
                                                 @if (!string.IsNullOrEmpty(item.Comment))
@@ -147,7 +145,7 @@
                                             </td>
                                             <td>
                                                 <div class="action-buttons">
-                                                    @if (item.Status == "Draft" || item.Status == "NeedsCorrection")
+                                                    @if (new[] { ReportStatus.Draft, ReportStatus.NeedsCorrection }.Contains(item.Status))
                                                     {
                                                         @if (item.BranchId == branchId)
                                                         {
@@ -168,7 +166,7 @@
                                                              Скачать
                                                         </a>
                                                     }
-                                                    else if (item.Status == "InProgress" && item.BranchId == branchId)
+                                                    else if (item.Status == ReportStatus.InProgress)
                                                     {
                                                         <form asp-action="UploadReport" asp-controller="ReportMvc" method="post" enctype="multipart/form-data" class="d-inline-block">
                                                             <input type="hidden" name="templateId" value="@item.TemplateId" />

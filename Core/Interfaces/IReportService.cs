@@ -19,8 +19,8 @@ namespace Core.Interfaces
         Task<IEnumerable<Report>> GetReportsByBranchAsync(int branchId);
         Task<ReportDto> UploadReportAsync(int templateId, int branchId, int uploadedById, IFormFile file);
         Task<byte[]> GetReportFileAsync(int reportId);
-        Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newStatus, string? remarks = null);
-        Task<bool> AddReportCommentAsync(int reportId, string comment);
+        Task<bool> UpdateReportStatusAsync(int deadlineId,int reportId, ReportStatus newStatus);
+        Task<bool> AddReportCommentAsync(int deadlineId,int reportId, string comment, int? authorId);
         Task<List<PendingTemplateDto>> GetPendingTemplatesAsync(int? branchId);
         Task<Dictionary<string, Dictionary<string, List<List<string>>>>> ReadExcelFileAsync(int reportId);
         Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType);

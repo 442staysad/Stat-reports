@@ -166,6 +166,11 @@
                                class="btn btn-sm btn-primary">
                                 ⬇ Скачать
                             </a>
+                            <form method="post" asp-action="ReopenReport" asp-route-reportId="@report.Id" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Вы уверены, что хотите открыть отчет для редактирования?')">
+                                    🔓 Открыть
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 }
