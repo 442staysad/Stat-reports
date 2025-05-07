@@ -23,7 +23,7 @@ namespace Core.Interfaces
         Task<bool> UpdateReportStatusAsync(int deadlineId,int reportId, ReportStatus newStatus);
         Task<bool> AddReportCommentAsync(int deadlineId,int reportId, string comment, int? authorId);
         Task<List<PendingTemplateDto>> GetPendingTemplatesAsync(int? branchId);
-        Task<Dictionary<string, Dictionary<string, List<List<string>>>>> ReadExcelFileAsync(int reportId);
+        Task<Dictionary<string, Dictionary<string, List<List<CellDto>>>>> ReadExcelFileAsync(int reportId);
         Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType);
     }
 }

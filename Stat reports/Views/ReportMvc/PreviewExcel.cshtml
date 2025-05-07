@@ -84,17 +84,12 @@
                                         <tr>
                                             @foreach (var cell in row)
                                             {
-                                                if (isHeader)
-                                                {
-                                                    <th>@cell</th>
-                                                }
-                                                else
-                                                {
-                                                    <td>@cell</td>
-                                                }
+                                                <td rowspan="@(cell.RowSpan > 1 ? cell.RowSpan : null)"
+                                                    colspan="@(cell.ColSpan > 1 ? cell.ColSpan : null)">
+                                                    @cell.Value
+                                                </td>
                                             }
                                         </tr>
-                                        isHeader = false;
                                     }
                                 </table>
                             </div>

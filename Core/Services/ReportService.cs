@@ -314,7 +314,7 @@ namespace Core.Services
         }
 
 
-        public async Task<Dictionary<string, Dictionary<string, List<List<string>>>>> ReadExcelFileAsync(int reportId)
+        public async Task<Dictionary<string, Dictionary<string, List<List<CellDto>>>>> ReadExcelFileAsync(int reportId)
         {
             var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
@@ -322,36 +322,58 @@ namespace Core.Services
 
             var fileBytes = await _fileService.GetFileAsync(report.FilePath);
             using var stream = new MemoryStream(fileBytes);
-
-            // Установка контекста лицензии
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             using var package = new ExcelPackage(stream);
 
-            // Предположим, что филиал берется из самого отчета
             string branchKey = report.BranchId?.ToString() ?? throw new InvalidOperationException("BranchId is null");
+            var result = new Dictionary<string, Dictionary<string, List<List<CellDto>>>>();
 
-            var result = new Dictionary<string, Dictionary<string, List<List<string>>>>();
-
-            if (!result.ContainsKey(branchKey))
-                result[branchKey] = new Dictionary<string, List<List<string>>>();
+            result[branchKey] = new Dictionary<string, List<List<CellDto>>>();
 
             foreach (var worksheet in package.Workbook.Worksheets)
             {
-                var sheetData = new List<List<string>>();
+                var sheetData = new List<List<CellDto>>();
+
                 for (int row = 1; row <= worksheet.Dimension.Rows; row++)
                 {
-                    var rowData = new List<string>();
+                    var rowData = new List<CellDto>();
                     for (int col = 1; col <= worksheet.Dimension.Columns; col++)
                     {
-                        rowData.Add(worksheet.Cells[row, col].Text);
+                        var cell = worksheet.Cells[row, col];
+                        var mergedAddress = worksheet.MergedCells[row, col];
+
+                        rowData.Add(new CellDto
+                        {
+                            Value = cell.Text,
+                            RowSpan = GetRowSpan(mergedAddress),
+                            ColSpan = GetColSpan(mergedAddress),
+                            IsMerged = !string.IsNullOrEmpty(mergedAddress),
+                        });
                     }
                     sheetData.Add(rowData);
                 }
+
                 result[branchKey][worksheet.Name] = sheetData;
             }
 
             return result;
+        }
+
+        private int GetRowSpan(string? mergedAddress)
+        {
+            if (string.IsNullOrEmpty(mergedAddress)) return 1;
+
+            var range = new ExcelAddress(mergedAddress);
+            return range.End.Row - range.Start.Row + 1;
+        }
+
+        private int GetColSpan(string? mergedAddress)
+        {
+            if (string.IsNullOrEmpty(mergedAddress)) return 1;
+
+            var range = new ExcelAddress(mergedAddress);
+            return range.End.Column - range.Start.Column + 1;
         }
 
         public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(
