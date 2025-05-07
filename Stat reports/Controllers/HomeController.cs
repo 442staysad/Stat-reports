@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Stat_reports.Models;
 
@@ -6,26 +9,30 @@ namespace Stat_reports.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly IPostService _postService;
 
-    public HomeController(ILogger<HomeController> logger)
+
+    public HomeController(IPostService postService)
     {
-        _logger = logger;
+        _postService = postService;
+       
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        var posts = await _postService.GetRecentPostsForUserAsync();
+        return View(posts); // Передаем список Post
     }
 
-    public IActionResult Privacy()
+    [Authorize(Roles = "Admin,OBUnF,PEB")]
+    [HttpPost]
+    public async Task<IActionResult> AddPost(string header, string text)
     {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        var user = HttpContext.Session.GetInt32("UserId");
+        if (user != null)
+        {
+            await _postService.AddPostAsync(header, text, (int)user);
+        }
+        return RedirectToAction("Index");
     }
 }

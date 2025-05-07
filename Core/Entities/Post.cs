@@ -11,6 +11,7 @@ namespace Core.Entities
         public string? PostHeader { get; set; }
         public string PostText { get; set; }
         public int PosterId { get; set; }
+        public User Poster { get; set; }
         public DateTime PostDate { get; set; }
         
     }

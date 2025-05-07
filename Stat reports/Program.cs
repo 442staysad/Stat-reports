@@ -32,6 +32,8 @@ builder.Services.AddScoped<ISummaryReportService, SummaryReportService>();
 builder.Services.AddScoped<IDeadlineService, DeadlineService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IPostService, PostService>();
 
 builder.Services.AddHostedService<DeadlineNotificationHostedService>();
 

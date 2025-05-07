@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services
 {
-    public class CommentService
+    public class CommentService:ICommentService
     {
         private readonly IUnitOfWork _unitOfWork;
 

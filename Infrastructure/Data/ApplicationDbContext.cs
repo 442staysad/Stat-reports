@@ -20,6 +20,7 @@ using System.Collections.Generic;
         public DbSet<SummaryReport> SummaryReports { get; set; }
         public DbSet<SystemRole> SystemRoles { get; set; } // Добавлено для ролей пользователей
         public DbSet<Notification> Notifications { get; set; } // Добавлено для уведомлений
+        public DbSet<Post> Posts { get; set; } // Добавлено для постов
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +65,7 @@ using System.Collections.Generic;
                 .WithMany()
                 .HasForeignKey(r => r.UploadedById)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             /*  modelBuilder.Entity<SubmissionDeadline>()
                   .HasOne(sd => sd.Template)
