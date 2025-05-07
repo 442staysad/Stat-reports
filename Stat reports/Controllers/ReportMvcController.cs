@@ -102,6 +102,7 @@ namespace Stat_reports.Controllers
                 ExcelData = excelData,
                 Comment = report.Comment,
                 Status = report.Status,
+                CommentHistory = report.CommentHistory,
                 IsArchive = isArchive 
             };
 

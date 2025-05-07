@@ -16,5 +16,6 @@ namespace Core.DTO
         public DateTime UploadDate { get; set; }
         public DateTime Period { get; set; }
         public ReportType Type { get; set; }
+        public List<CommentHistoryDto> CommentHistory { get; set; } = new();
     }
 }

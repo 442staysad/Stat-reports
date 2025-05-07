@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.DTO;
 
 namespace Stat_reports.ViewModels
 {
@@ -12,7 +13,7 @@ namespace Stat_reports.ViewModels
         public Dictionary<string, Dictionary<string, List<List<string>>>> ExcelData { get; set; } // Исправляем тип
         public string? Comment { get; set; }
         public ReportStatus Status { get; set; }
-
+        public List<CommentHistoryDto>?  CommentHistory{get; set;}
         public bool IsArchive { get; set; } // ➕
     }
 }

@@ -11,8 +11,8 @@ namespace Core.Interfaces
     public interface IReportService
     {
         Task<Report?> FindByTemplateBranchPeriodAsync(int templateId, int branchId, int year, int month);
-       Task<IEnumerable<Report>> GetAllReportsAsync();
-      Task<ReportDto> GetReportByIdAsync(int id);
+         Task<IEnumerable<Report>> GetAllReportsAsync();
+        Task<ReportDto> GetReportByIdAsync(int id);
         Task<ReportDto> CreateReportAsync(ReportDto reportDto);
         Task<ReportDto> UpdateReportAsync(int id, ReportDto reportDto);
         Task<ReportDto> ReopenReportAsync(int reportid);

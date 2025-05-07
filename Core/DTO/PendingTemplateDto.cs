@@ -27,5 +27,6 @@ namespace Core.DTO
     {
         public DateTime CreatedAt { get; set; }
         public string Comment { get; set; }
+        public string? AuthorName { get; set; }
     }
 }

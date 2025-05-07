@@ -26,7 +26,7 @@
                 <div class="mb-3">
                     <label for="comment" class="form-label">Комментарий</label>
                     <textarea class="form-control" id="comment" name="comment" rows="3"
-                              placeholder="Введите ваш комментарий...">@Model.Comment</textarea>
+                              placeholder="Введите ваш комментарий..." required>@Model.Comment</textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     Сохранить комментарий
@@ -112,6 +112,35 @@
         </div>
     }
     
+</div>
+
+<div class="modal fade" id="commentHistoryModal" tabindex="-1" aria-labelledby="commentHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commentHistoryModalLabel">История комментариев</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                @if (Model.CommentHistory != null && Model.CommentHistory.Any())
+                {
+                    <ul class="list-group">
+                        @foreach (var comment in Model.CommentHistory.OrderByDescending(c => c.CreatedAt))
+                        {
+                            <li class="list-group-item">
+                                <strong>@comment.AuthorName</strong> <small class="text-muted">@comment.CreatedAt.ToString("g")</small>
+                                <p class="mb-0">@comment.Comment</p>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">На текущий момент нет объявлений</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

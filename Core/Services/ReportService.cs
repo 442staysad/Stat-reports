@@ -45,7 +45,23 @@ namespace Core.Services
         public async Task<ReportDto?> GetReportByIdAsync(int id)
         {
             var report = await _unitOfWork.Reports.FindAsync(r => r.Id == id);
-            return report == null ? null : MapToDto(report);
+
+            if (report == null)
+                return null;
+
+            var reportDto = MapToDto(report);
+
+            var comments = await _unitOfWork.CommentHistory.FindAllAsync(c => c.ReportId == id);
+
+            reportDto.CommentHistory = comments.Select(c => new CommentHistoryDto
+            {
+                Comment = c.Comment,
+                CreatedAt = c.CreatedAt,
+                AuthorName = c.Author != null ? $"{c.Author.FullName}" : "Неизвестный автор"
+
+            }).ToList();
+
+            return reportDto;
         }
 
         public async Task<ReportDto> CreateReportAsync(ReportDto reportDto)
