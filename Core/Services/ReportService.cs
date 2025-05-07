@@ -334,14 +334,31 @@ namespace Core.Services
             foreach (var worksheet in package.Workbook.Worksheets)
             {
                 var sheetData = new List<List<CellDto>>();
+                int maxRow = 0;
+                int maxCol = 0;
 
-                for (int row = 1; row <= worksheet.Dimension.Rows; row++)
+                // Находим реальные границы (без пустых строк и столбцов)
+                for (int r = 1; r <= worksheet.Dimension.Rows; r++)
+                {
+                    for (int c = 1; c <= worksheet.Dimension.Columns; c++)
+                    {
+                        var cell = worksheet.Cells[r, c];
+                        if (!string.IsNullOrWhiteSpace(cell.Text))
+                        {
+                            if (r > maxRow) maxRow = r;
+                            if (c > maxCol) maxCol = c;
+                        }
+                    }
+                }
+
+                // Читаем данные только до maxRow/maxCol
+                for (int r = 1; r <= maxRow; r++)
                 {
                     var rowData = new List<CellDto>();
-                    for (int col = 1; col <= worksheet.Dimension.Columns; col++)
+                    for (int c = 1; c <= maxCol; c++)
                     {
-                        var cell = worksheet.Cells[row, col];
-                        var mergedAddress = worksheet.MergedCells[row, col];
+                        var cell = worksheet.Cells[r, c];
+                        var mergedAddress = worksheet.MergedCells[r, c];
 
                         rowData.Add(new CellDto
                         {
