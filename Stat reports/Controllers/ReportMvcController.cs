@@ -90,7 +90,6 @@ namespace Stat_reports.Controllers
                 return NotFound("Файл отчета не найден");
 
             var branch = await _branchService.GetBranchByIdAsync(report.BranchId);
-            var excelData = await _reportService.ReadExcelFileAsync(reportId);
 
             var model = new ExcelPreviewViewModel
             {
@@ -99,7 +98,7 @@ namespace Stat_reports.Controllers
                 DeadlineId = deadlineId,
                 ReportId = reportId,
                 ReportName = report.Name,
-                ExcelData = excelData,
+                FilePath = report.FilePath,
                 Comment = report.Comment,
                 Status = report.Status,
                 CommentHistory = report.CommentHistory,
@@ -107,6 +106,18 @@ namespace Stat_reports.Controllers
             };
 
             return View(model);
+        }
+        // в ReportMvcController
+        [HttpGet]
+        public async Task<IActionResult> DownloadExcelForView(int reportId)
+        {
+            var report = await _reportService.GetReportByIdAsync(reportId);
+            if (report == null || string.IsNullOrEmpty(report.FilePath))
+                return NotFound();
+
+            var bytes = await _fileService.GetFileAsync(report.FilePath);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        Path.GetFileName(report.FilePath));
         }
 
         [HttpPost]

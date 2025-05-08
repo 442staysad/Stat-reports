@@ -1,227 +1,118 @@
-﻿:root {
-    --primary-color: #3498db;
-    --secondary-color: #2c3e50;
-    --accent-color: #e74c3c;
-    --light-bg: #f8f9fa;
-    --dark-text: #2c3e50;
-    --border-color: #dee2e6;
+﻿/* Стили для навигации по вкладкам (листам Excel) */
+#excelTabNav { /* Используем ID для повышения специфичности */
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    border-bottom: 2px solid #007bff;
+    display: flex;
+    flex-wrap: wrap;
 }
 
-body {
-    background-color: var(--light-bg);
-    color: var(--dark-text);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+    #excelTabNav .nav-item {
+        margin-bottom: -2px;
+    }
 
-.container-xl {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.header {
-    background-color: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.nav-tabs {
-    border-bottom: 2px solid var(--border-color);
-}
-
-    .nav-tabs .nav-link {
-        color: var(--secondary-color);
+    #excelTabNav .nav-link { /* Используем ID */
+        border: 1px solid #ccc;
+        border-bottom: none;
+        border-top-left-radius: .35rem;
+        border-top-right-radius: .35rem;
+        padding: 0.6rem 1.1rem;
+        color: #000000; /* ТЕКСТ НЕАКТИВНЫХ ВКЛАДОК - ЧЕРНЫЙ */
+        text-decoration: none;
+        cursor: pointer;
+        background-color: #000000;
+        margin-right: 3px;
         font-weight: 500;
-        border: none;
-        padding: 12px 20px;
-        transition: all 0.3s;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     }
 
-        .nav-tabs .nav-link:hover {
-            color: var(--primary-color);
-            background-color: rgba(52, 152, 219, 0.1);
+        #excelTabNav .nav-link:hover, /* Используем ID */
+        #excelTabNav .nav-link:focus { /* Используем ID */
+            background-color: #e0e0e0;
+            color: #000000; /* Текст при наведении на неактивную вкладку остается черным */
+            border-color: #b0b0b0;
+            border-bottom: none;
         }
 
-        .nav-tabs .nav-link.active {
-            color: var(--primary-color);
-            border-bottom: 3px solid var(--primary-color);
-            background-color: transparent;
+        #excelTabNav .nav-link.active { /* Используем ID */
+            color: #000000; /* Текст активной вкладки - ЧЕРНЫЙ */
+            background-color: #fff;
+            border-color: #007bff #007bff #fff;
+            border-width: 2px;
+            border-bottom-color: #fff;
+            font-weight: bold;
         }
 
-.sheet-container {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
-    overflow: hidden;
-    position: relative;
+/* Стили для содержимого листа */
+.sheet-content {
+    display: none;
+    padding: 1.5rem;
+    border: 1px solid #007bff;
+    border-top: none;
+    background-color: #fff;
+    margin-top: -1px;
 }
 
-.sheet-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 12px 20px;
-    font-weight: 600;
-}
-
-.sheet-navigation {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.nav-arrow {
-    cursor: pointer;
-    font-size: 24px;
-    padding: 5px 15px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    transition: all 0.3s;
-}
-
-    .nav-arrow:hover {
-        background-color: #e9ecef;
+    .sheet-content.active {
+        display: block;
     }
 
-.sheet-title {
-    font-weight: bold;
-    text-align: center;
-    flex-grow: 1;
-}
+    .sheet-content h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        color: #333;
+        font-weight: normal;
+    }
 
-.excel-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    .sheet-content table {
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        width: 100%;
+        background-color: #fff;
+    }
 
-    .excel-table th {
-        background-color: #f1f5f9;
-        color: var(--secondary-color);
-        font-weight: 600;
-        padding: 12px;
+    .sheet-content th,
+    .sheet-content td {
+        border: 1px solid #b0b0b0;
+        padding: 5px 10px;
+        white-space: nowrap;
+        background-color: #fff;
         text-align: left;
-        border: 1px solid var(--border-color);
+        color: #000000;
+        font-size: 0.9rem;
     }
 
-    .excel-table td {
-        padding: 10px 12px;
-        border: 1px solid var(--border-color);
-        vertical-align: top;
+    .sheet-content th {
+        background-color: #e9ecef;
+        font-weight: bold;
+        color: #000000;
     }
 
-    .excel-table tr:nth-child(even) {
-        background-color: #f8fafc;
-    }
-
-    .excel-table tr:hover {
-        background-color: #f1f5f9;
-    }
-
-.action-section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 20px;
-    margin-top: 20px;
-}
-
-.form-label {
-    font-weight: 600;
-    color: var(--secondary-color);
-}
-
-.no-data {
-    padding: 40px;
-    text-align: center;
-    color: #6c757d;
-    background-color: white;
-    border-radius: 8px;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-weight: 500;
-    font-size: 0.85rem;
-}
-
-.status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.status-accepted {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.status-rejected {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-.scrollable-table {
+.scrollable-wrapper {
     overflow-x: auto;
-    max-width: 100%;
-    position: relative;
-}
-
-.table-scroll-controls {
-    position: absolute;
-    top: 50%;
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    pointer-events: none;
-    transform: translateY(-50%);
 }
 
-.scroll-btn {
-    pointer-events: auto;
-    background: rgba(0,0,0,0.5);
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10;
-    margin: 0 10px;
+.excel-viewer-container {
+    margin-top: 1rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: .35rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, .075);
 }
 
-    .scroll-btn:hover {
-        background: rgba(0,0,0,0.7);
+    .excel-viewer-container > h4 {
+        color: #000000 !important;
+        font-weight: bold !important;
+        font-size: 1.4rem;
+        margin-bottom: 0.8rem;
     }
 
-@media (max-width: 768px) {
-    .nav-tabs .nav-link {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-
-    .excel-table th,
-    .excel-table td {
-        padding: 8px 10px;
-        font-size: 0.9rem;
-    }
-
-    .nav-arrow {
-        font-size: 20px;
-        padding: 3px 10px;
-    }
-
-    .scroll-btn {
-        width: 30px;
-        height: 30px;
-    }
+#loadingMessage {
+    padding: 20px;
+    text-align: center;
+    font-style: italic;
+    color: #555;
 }
