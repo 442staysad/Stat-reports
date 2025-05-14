@@ -11,5 +11,6 @@ namespace Core.Interfaces
     {
         Task<IEnumerable<RoleDto>> GetAllRolesAsync();
         Task<RoleDto> GetRoleByNameAsync(string name);
+        Task<RoleDto> GetRoleByIdAsync(int id);
     }
 }

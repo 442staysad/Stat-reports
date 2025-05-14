@@ -13,10 +13,12 @@ namespace Stat_reports.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IWebHostEnvironment hostingEnvironment)
         {
             _authService = authService;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         [AllowAnonymous]
@@ -89,6 +91,29 @@ namespace Stat_reports.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet] 
+        public IActionResult DownloadUserManual()
+        {
+            string fileName = "Руководство_пользователя.docx";
+            // Формируем полный физический путь к файлу в папке wwwroot/docs
+            // Убедитесь, что папка 'docs' существует в вашей папке wwwroot
+            string filePath = Path.Combine(_hostingEnvironment.WebRootPath, "docs", fileName);
+
+            // Проверяем, существует ли файл по указанному пути
+            if (!System.IO.File.Exists(filePath))
+            {
+                // Если файл не найден, можно вернуть 404 ошибку или другое сообщение
+                return NotFound("Руководство пользователя не найдено на сервере.");
+            }
+
+            // Определяем MIME-тип для файлов .docx
+            string mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+            // Отдаем файл
+            return PhysicalFile(filePath, mimeType, fileName);
+            // PhysicalFile(путь_к_файлу, mime_тип, имя_для_скачивания)
         }
 
         [AllowAnonymous]

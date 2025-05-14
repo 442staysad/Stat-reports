@@ -24,12 +24,12 @@ namespace Infrastructure.Data
             {
                 var roles = new List<SystemRole>
             {
-                new() { RoleName = "Admin" },
-                new() { RoleName = "PEB" },
-                new() { RoleName = "OBUnF" },
-                new() { RoleName = "User" },
-                new() { RoleName = "AdminBranch" },
-                new() { RoleName = "AdminTrest" }
+                new() { RoleName = "Admin" , RoleNameRu="Администратор"},
+                new() { RoleName = "PEB" ,RoleNameRu = "ПЭБ"},
+                new() { RoleName = "OBUnF" ,RoleNameRu= "ОБУиФ"},
+                new() { RoleName = "User" , RoleNameRu = "Пользователь"},
+                new() { RoleName = "AdminBranch" , RoleNameRu="Ответственный филиала"},
+                new() { RoleName = "AdminTrest" , RoleNameRu="Ответственный Трест"}
             };
                 await context.SystemRoles.AddRangeAsync(roles);
                 await context.SaveChangesAsync();

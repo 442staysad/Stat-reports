@@ -9,7 +9,7 @@ using Stat_reports.ViewModels;
 
 namespace Stat_reports.Controllers
 {
-    [Authorize(Roles = "Admin,PEB,OBUnF,User")]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly IUserService _userService;
@@ -26,43 +26,89 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> Index()
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
-            bool isGlobal = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF");
+            bool isGlobal = User.IsInRole("Admin");
             var dtos = await _userService.GetAllUsersAsync(isGlobal ? null : sessionBranchId);
             return View(dtos);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,AdminTrest,AdminBranch")]
         public async Task<IActionResult> Create()
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
-            bool isGlobal = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF");
+
+            var allRoles = await _roleService.GetAllRolesAsync();
+            var allBranches = await _branchService.GetAllBranchesAsync();
+
+            IEnumerable<SelectListItem> roleOptions;
+            IEnumerable<SelectListItem> branchOptions;
+
+            if (User.IsInRole("Admin"))
+            {
+                // Admin может выбрать любую роль и филиал
+                roleOptions = allRoles.Select(r => new SelectListItem(r.RoleNameRu, r.Id.ToString()));
+                branchOptions = allBranches.Select(b => new SelectListItem(b.Name, b.Id.ToString()));
+            }
+            else if (User.IsInRole("AdminTrest"))
+            {
+                // AdminTrest — только User, PEB, OBUnF в своём филиале
+                var allowedRoles = new[] { "User", "PEB", "OBUnF" };
+                roleOptions = allRoles
+                    .Where(r => allowedRoles.Contains(r.RoleName))
+                    .Select(r => new SelectListItem(r.RoleNameRu, r.Id.ToString()));
+
+                branchOptions = allBranches
+                    .Where(b => b.Id == sessionBranchId)
+                    .Select(b => new SelectListItem(b.Name, b.Id.ToString()));
+            }
+            else // AdminBranch
+            {
+                // Только User и только свой филиал
+                var userRole = allRoles.First(r => r.RoleName == "User");
+                roleOptions = new[] { new SelectListItem(userRole.RoleNameRu, userRole.Id.ToString()) };
+
+                branchOptions = allBranches
+                    .Where(b => b.Id == sessionBranchId)
+                    .Select(b => new SelectListItem(b.Name, b.Id.ToString()));
+            }
 
             var vm = new UserCreateViewModel
             {
-                RoleOptions = (await _roleService.GetAllRolesAsync())
-                    .Where(r => isGlobal || r.RoleName == "User") // для обычного — только "User"
-                    .Select(r => new SelectListItem(r.RoleName, r.Id.ToString())),
-
-                BranchOptions = (await _branchService.GetAllBranchesAsync())
-                    .Where(b => isGlobal || b.Id == sessionBranchId)
-                    .Select(b => new SelectListItem(b.Name, b.Id.ToString())),
+                RoleOptions = roleOptions,
+                BranchOptions = branchOptions
             };
+
             return View(vm);
         }
 
-        [HttpPost, Authorize(Roles = "Admin")]
+
+        [HttpPost, Authorize(Roles = "Admin,AdminTrest,AdminBranch")]
         public async Task<IActionResult> Create(UserCreateViewModel vm)
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
-            bool isGlobal = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF");
 
-            
-
-            // force branch/role for non-global
-            if (!isGlobal)
+            if (User.IsInRole("Admin"))
             {
+                // Admin — без ограничений
+            }
+            else if (User.IsInRole("AdminTrest"))
+            {
+                // Только User, PEB, OBUnF и только свой филиал
+                var allowedRoles = new[] { "User", "PEB", "OBUnF" };
+                var selectedRole = await _roleService.GetRoleByIdAsync(vm.RoleId);
+                if (!allowedRoles.Contains(selectedRole.RoleName))
+                {
+                    var defaultRole = await _roleService.GetRoleByNameAsync("User");
+                    vm.RoleId = defaultRole.Id;
+                }
+
                 vm.BranchId = sessionBranchId!.Value;
-                vm.RoleId = (await _roleService.GetRoleByNameAsync("User")).Id;
+            }
+            else // AdminBranch
+            {
+                // Только User и только свой филиал
+                var defaultRole = await _roleService.GetRoleByNameAsync("User");
+                vm.RoleId = defaultRole.Id;
+                vm.BranchId = sessionBranchId!.Value;
             }
 
             var dto = new UserDto
@@ -76,13 +122,13 @@ namespace Stat_reports.Controllers
                 RoleId = vm.RoleId,
                 BranchId = vm.BranchId
             };
-            
+
             await _userService.CreateUserAsync(dto);
             TempData["Success"] = "Пользователь создан";
             return RedirectToAction(nameof(Index));
         }
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,AdminTrest,AdminBranch")]
         public async Task<IActionResult> Delete(int id)
         {
             await _userService.DeleteUserAsync(id);

@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Профиль пользователя";
+
+    // Определяем, разрешено ли пользователю редактировать данные филиала
+    bool isBranchEditable = User.IsInRole("AdminBranch") || User.IsInRole("Admin") || User.IsInRole("AdminTrest");
 }
 
 @section Styles {
@@ -43,6 +46,13 @@
             border: none;
             font-weight: bold;
         }
+
+        /* Стиль для отключенных полей, чтобы они выглядели как неактивные */
+        .form-control:disabled {
+            background-color: rgba(255, 255, 255, 0.1); /* Слегка прозрачный фон */
+            color: rgba(255, 255, 255, 0.6); /* Слегка прозрачный текст */
+            border-color: rgba(255, 255, 255, 0.2);
+        }
     </style>
 }
 
@@ -75,38 +85,50 @@
         <div class="row">
             <div class="col-md-6">
                 <label>Название</label>
-                <input asp-for="Name" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="Name" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>Краткое название</label>
-                <input asp-for="Shortname" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="Shortname" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>Регион</label>
-                <input asp-for="Region" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="Region" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>Адрес</label>
-                <input asp-for="Address" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="Address" class="form-control" disabled="@(!isBranchEditable)" />
             </div>
             <div class="col-md-6">
                 <label>УНП</label>
-                <input asp-for="UNP" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="UNP" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>ОКПО</label>
-                <input asp-for="OKPO" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="OKPO" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>ОКЮЛП</label>
-                <input asp-for="OKYLP" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="OKYLP" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>Email филиала</label>
-                <input asp-for="BranchEmail" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="BranchEmail" class="form-control" disabled="@(!isBranchEditable)" />
             </div>
         </div>
 
         <div class="row mt-3">
             <div class="col-md-6">
                 <label>Подчинение</label>
-                <input asp-for="GoverningName" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="GoverningName" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>Руководитель</label>
-                <input asp-for="HeadName" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="HeadName" class="form-control" disabled="@(!isBranchEditable)" />
             </div>
             <div class="col-md-6">
                 <label>Куратор</label>
-                <input asp-for="Supervisor" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="Supervisor" class="form-control" disabled="@(!isBranchEditable)" />
                 <label>Главный бухгалтер</label>
-                <input asp-for="ChiefAccountant" class="form-control" />
+                @* Corrected syntax for Tag Helper boolean attribute *@
+                <input asp-for="ChiefAccountant" class="form-control" disabled="@(!isBranchEditable)" />
             </div>
         </div>
 

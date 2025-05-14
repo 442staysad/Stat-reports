@@ -78,8 +78,13 @@ using System.Collections.Generic;
                 .HasForeignKey(d => d.ReportTemplateId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<ReportTemplate>()
+                .HasMany(rt => rt.Reports)
+                .WithOne(r => r.Template)
+                .HasForeignKey(r => r.TemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            
+
             modelBuilder.Entity<SummaryReport>()
                 .HasOne(sr => sr.ReportTemplate)
                 .WithMany()

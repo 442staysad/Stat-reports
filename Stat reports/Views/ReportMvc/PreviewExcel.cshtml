@@ -133,7 +133,7 @@
 
 <div class="container-xl">
     <div class="header">
-        <h2 class="mb-3">Просмотр отчета: <strong>@Model.ReportName</strong></h2>
+        <h2 class="mb-3">Просмотр отчета: <strong>@Model.BranchName @Model.ReportName</strong></h2>
     </div>
 
     @if (!Model.IsArchive && (Model.ReportType == role || User.IsInRole("Admin")))
@@ -157,10 +157,15 @@
                     <input type="hidden" name="reportId" value="@Model.ReportId" />
                     <button type="submit" class="btn btn-success">Принять отчет</button>
                 </form>
+
             </div>
         </div>
     }
-
+    <div class="mt-5">
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#commentHistoryModal">
+            История комментариев
+        </button>
+    </div>
     <div class="excel-viewer-container mt-4">
         <h4 class="ps-3 pt-3">Содержимое отчета:</h4>
         <ul class="excel-tabs px-3" id="excelTabNav">
@@ -171,11 +176,6 @@
         </div>
     </div>
 
-    <div class="mt-5">
-        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#commentHistoryModal">
-            История комментариев
-        </button>
-    </div>
 </div>
 
 <div class="modal fade" id="commentHistoryModal" tabindex="-1" aria-labelledby="commentHistoryModalLabel" aria-hidden="true">

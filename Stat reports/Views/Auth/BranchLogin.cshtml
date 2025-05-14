@@ -50,6 +50,15 @@
             </div>
             <button type="submit" class="btn btn-login w-100">Продолжить</button>
         </form>
+            <div class="text-center mt-4 mb-4">
+        @* Классы Bootstrap для центрирования и вертикальных отступов *@
+        <p>
+            @* Ссылка на экшен контроллера. controller="Home" если метод DownloadUserManual в HomeController *@
+                <a asp-controller="Auth" asp-action="DownloadUserManual" style="color:snow;" target="_blank">
+                Скачать руководство пользователя
+            </a>
+        </p>
+    </div>
     </div>
 
     <script src="@Html.Raw("https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js")"></script>

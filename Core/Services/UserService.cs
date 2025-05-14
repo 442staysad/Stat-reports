@@ -36,7 +36,8 @@ namespace Core.Services
                 RoleId = u.RoleId,
                 RoleName = u.Role?.RoleName,
                 BranchId = u.BranchId!.Value,
-                Password = ""
+                Password = "",
+                RoleNameRu = u.Role?.RoleNameRu,
             });
         }
 

@@ -184,9 +184,9 @@ namespace Core.Services
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
+                
                 var report = await _unitOfWork.Reports.FindAsync(r => r.Id == reportId);
-                if (report == null) return false;
-
+                
                 // Находим активный (не закрытый) дедлайн для этого отчета
                 var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(
                     d => d.Id==deadlineId,
@@ -314,30 +314,112 @@ namespace Core.Services
         }
 
         public async Task<IEnumerable<ReportDto>> GetFilteredReportsAsync(
-            string? name, int? templateId, int? branchId, DateTime? startDate, DateTime? endDate, ReportType? reportType)
+            string? name,
+            int? templateId,
+            int? branchId,
+            int? year, // Новый параметр
+            int? month, // Новый параметр
+            int? quarter, // Новый параметр
+            int? halfYearPeriod, // Новый параметр
+            ReportType? reportType)
         {
-            var query = _unitOfWork.Reports.GetAll(includes:r=>r.Include(d=>d.Branch));
+            // Включаем Template, т.к. нужен DeadlineType
+            var query = _unitOfWork.Reports.GetAll(includes: r => r.Include(d => d.Branch).Include(d => d.Template));
+
+            // Фильтруем только закрытые отчеты для архива
             query = query.Where(rp => rp.IsClosed);
+
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(r => r.Name.Contains(name));
 
+            // Сначала применяем фильтр по шаблону, если он есть
             if (templateId.HasValue)
+            {
                 query = query.Where(r => r.TemplateId == templateId.Value);
+
+                // *** Логика фильтрации по периоду на основе шаблона и переданных параметров ***
+                // Находим DeadlineType выбранного шаблона.
+                // Т.к. Template уже включен в query, мы можем потенциально получить его так:
+                var selectedTemplate = await _unitOfWork.ReportTemplates.FindAsync(t=>t.Id==templateId.Value);
+
+                DateTime? calculatedStartDate = null;
+                DateTime? calculatedEndDate = null;
+
+                // Если шаблон найден и указан год
+                if (selectedTemplate != null && year.HasValue)
+                {
+                    try
+                    {
+                        switch (selectedTemplate.DeadlineType)
+                        {
+                            case DeadlineType.Yearly:
+                                calculatedStartDate = new DateTime(year.Value, 1, 1);
+                                calculatedEndDate = new DateTime(year.Value, 12, 31);
+                                break;
+                            case DeadlineType.Monthly:
+                                if (month.HasValue && month.Value >= 1 && month.Value <= 12)
+                                {
+                                    calculatedStartDate = new DateTime(year.Value, month.Value, 1);
+                                    calculatedEndDate = new DateTime(year.Value, month.Value, DateTime.DaysInMonth(year.Value, month.Value));
+                                }
+                                break;
+                            case DeadlineType.Quarterly:
+                                if (quarter.HasValue && quarter.Value >= 1 && quarter.Value <= 4)
+                                {
+                                    int startMonth = (quarter.Value - 1) * 3 + 1;
+                                    calculatedStartDate = new DateTime(year.Value, startMonth, 1);
+                                    int endMonth = startMonth + 2;
+                                    calculatedEndDate = new DateTime(year.Value, endMonth, DateTime.DaysInMonth(year.Value, endMonth));
+                                }
+                                break;
+                            case DeadlineType.HalfYearly:
+                                if (halfYearPeriod.HasValue && halfYearPeriod.Value >= 1 && halfYearPeriod.Value <= 2)
+                                {
+                                    int startMonth = halfYearPeriod.Value == 1 ? 1 : 7;
+                                    calculatedStartDate = new DateTime(year.Value, startMonth, 1);
+                                    int endMonth = halfYearPeriod.Value == 1 ? 6 : 12;
+                                    calculatedEndDate = new DateTime(year.Value, endMonth, DateTime.DaysInMonth(year.Value, endMonth));
+                                }
+                                break;
+                            // Если есть другие DeadlineType, добавьте их здесь
+                            default:
+                                // Если тип периода шаблона не Yearly, Monthly, Quarterly или HalfYearly,
+                                // или не предоставлены нужные параметры (например, месяц для Monthly),
+                                // calculatedStartDate и calculatedEndDate останутся null, и фильтр по дате не применится.
+                                break;
+                        }
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // Обработка некорректных значений года, месяца и т.д.
+                        // В реальном приложении, возможно, стоит логировать или возвращать ошибку.
+                        calculatedStartDate = null;
+                        calculatedEndDate = null;
+                    }
+                }
+
+                // Применяем рассчитанный диапазон дат, если он валиден
+                if (calculatedStartDate.HasValue && calculatedEndDate.HasValue)
+                {
+                    // Фильтруем, что Period отчета находится в рассчитанном диапазоне
+                    query = query.Where(r => r.Period >= calculatedStartDate.Value && r.Period <= calculatedEndDate.Value);
+                }
+                // *** Конец логики фильтрации по периоду ***
+
+            }
+            // Если templateId не выбран, старые поля StartDate и EndDate не используются,
+            // и фильтрация по дате периода не происходит на основе выбора периода,
+            // только на основе имени, типа отчета и филиала.
 
             if (branchId.HasValue)
                 query = query.Where(r => r.BranchId == branchId.Value);
-
-            if (startDate.HasValue)
-                query = query.Where(r => r.Period >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(r => r.Period <= endDate.Value);
 
             if (reportType.HasValue)
                 query = query.Where(r => r.Type == reportType.Value);
 
             var reports = await query.ToListAsync();
 
+            // Маппинг в DTO остаётся прежним, так как ReportDto уже включает DeadlineType из шаблона
             return reports.Select(r => new ReportDto
             {
                 Id = r.Id,
@@ -348,7 +430,9 @@ namespace Core.Services
                 TemplateId = r.TemplateId,
                 FilePath = r.FilePath,
                 Period = r.Period,
-                Type = r.Type
+                Type = r.Type,
+                // Используем DeadlineType из связанного шаблона
+                DeadlineType = r.Template?.DeadlineType ?? 0
             }).ToList();
         }
 

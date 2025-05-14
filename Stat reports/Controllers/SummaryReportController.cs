@@ -68,6 +68,6 @@ public class SummaryReportController : Controller
             MergeReportsToExcel(reports, templatePath);
 
         return File(mergedExcel, $"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"Сводный {model.Templates.FirstOrDefault(t=>t.Id==model.SelectedTemplateId)}.xlsx");
+            $"Сводный {model.Templates.FirstOrDefault(t=>t.Id==model.SelectedTemplateId).Name}.xlsx");
     }
 }

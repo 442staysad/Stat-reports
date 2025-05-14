@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
 using Core.DTO;
 using Core.Entities;
 using Core.Enums;
@@ -21,7 +22,7 @@ namespace Stat_reports.Controllers
         private readonly IReportTemplateService _reportTemplateService;
         private readonly IFileService _fileService;
 
-        public ReportMvcController(IReportService reportService, 
+        public ReportMvcController(IReportService reportService,
             IDeadlineService deadlineService,
             IBranchService branchService,
             IReportTemplateService reportTemplateService,
@@ -83,7 +84,7 @@ namespace Stat_reports.Controllers
         }
 
 
-        public async Task<IActionResult> PreviewExcel(int reportId, int? deadlineId , bool isArchive = false)
+        public async Task<IActionResult> PreviewExcel(int reportId, int? deadlineId, bool isArchive = false)
         {
             var report = await _reportService.GetReportByIdAsync(reportId);
             if (report == null || string.IsNullOrEmpty(report.FilePath))
@@ -102,7 +103,7 @@ namespace Stat_reports.Controllers
                 Comment = report.Comment,
                 Status = report.Status,
                 CommentHistory = report.CommentHistory,
-                IsArchive = isArchive 
+                IsArchive = isArchive
             };
 
             return View(model);
@@ -124,7 +125,7 @@ namespace Stat_reports.Controllers
         [Authorize(Roles = "Admin,PEB,OBUnF")]
         public async Task<IActionResult> AddComment(int deadlineId, int reportId, string comment)
         {
-            await _reportService.AddReportCommentAsync(deadlineId,reportId, comment, HttpContext.Session.GetInt32("UserId"));
+            await _reportService.AddReportCommentAsync(deadlineId, reportId, comment, HttpContext.Session.GetInt32("UserId"));
             //await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.NeedsCorrection,comment);
             return RedirectToAction(nameof(WorkingReports));
         }
@@ -150,7 +151,7 @@ namespace Stat_reports.Controllers
                 return View(model);
             }*/
 
-            
+
             string filePath = null;
             if (model.File != null)
             {
@@ -196,7 +197,7 @@ namespace Stat_reports.Controllers
         [Authorize(Roles = "Admin,PEB,OBUnF")]
         public async Task<IActionResult> AcceptReport(int deadlineId, int reportId)
         {
-            await _reportService.UpdateReportStatusAsync(deadlineId,reportId, ReportStatus.Reviewed);
+            await _reportService.UpdateReportStatusAsync(deadlineId, reportId, ReportStatus.Reviewed);
             return RedirectToAction(nameof(WorkingReports));
         }
 
@@ -204,7 +205,7 @@ namespace Stat_reports.Controllers
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
 
-            bool isGlobalUser = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF");
+            bool isGlobalUser = User.IsInRole("Admin") || User.IsInRole("PEB") || User.IsInRole("OBUnF") || User.IsInRole("Trest");
 
             // Только если не глобальный пользователь — ограничиваем по филиалу
             int? branchId = isGlobalUser ? null : sessionBranchId;
@@ -224,6 +225,7 @@ namespace Stat_reports.Controllers
                 ReportId = t.ReportId,
                 ReportType = t.ReportType,
                 BranchId = (int)t.BranchId,
+                ReportTypeName = t.ReportType == "Plan" ? "PEB" : "OBUnF",
                 BranchName = branches.FirstOrDefault(b => b.Id == t.BranchId)?.Name ?? "Неизвестный филиал"
             }).ToList();
 
@@ -240,15 +242,135 @@ namespace Stat_reports.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
+        [Authorize(Roles = "Admin,PEB,OBUnF,AdminTrest")]
         public async Task<IActionResult> Delete(int id)
         {
             await _reportService.DeleteReportAsync(id);
-            return RedirectToAction( "ReportArchive","ReportMvc");
+            return RedirectToAction("ReportArchive", "ReportMvc");
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin,AdminTrest,PEB,OBUnF")]
+        public async Task<IActionResult> GetTemplatesForManagement()
+        {
+            Console.WriteLine("GetTemplatesForManagement called");
+
+            try
+            {
+                var templates = await _reportTemplateService.GetAllReportTemplatesAsync();
+                Console.WriteLine($"Found {templates.Count()} templates");
+
+                var templateList = templates.Select(t => new
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Type = t.Type.ToString()
+                }).ToList();
+
+                return Json(templateList);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message, "Error in GetTemplatesForManagement");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+        // --- Метод для удаления дедлайна ---
+        // Этот метод обрабатывает POST-запрос от формы в таблице.
+        // Проверка прав производится на сервере перед удалением.
         [HttpPost]
-        [Authorize(Roles = "Admin,PEB,OBUnF")]
+        [Authorize(Roles = "Admin,AdminTrest,PEB,OBUnF")]
+        [ValidateAntiForgeryToken] // Важно!
+        public async Task<IActionResult> DeleteDeadline(int id)
+        {
+            var deadline = await _deadlineService.GetDeadlineByIdAsync(id);
+
+            if (deadline == null)
+            {
+                TempData["Error"] = "Срок сдачи не найден.";
+                return RedirectToAction(nameof(WorkingReports)); // Или NotFound()
+            }
+
+            // --- Серверная проверка прав на удаление конкретного дедлайна ---
+            bool canDeleteAny = User.IsInRole("Admin") || User.IsInRole("AdminTrest");
+            bool canDeletePlan = User.IsInRole("PEB") && deadline.Template?.Type == ReportType.Plan; // Проверяем тип шаблона дедлайна
+            bool canDeleteAccountant = User.IsInRole("OBUnF") && deadline.Template?.Type == ReportType.Accountant; // Проверяем тип шаблона дедлайна
+
+            if (!canDeleteAny && !canDeletePlan && !canDeleteAccountant)
+            {
+                // Если у пользователя нет прав на удаление этого дедлайна
+                TempData["Error"] = "У вас нет прав на удаление этого срока сдачи отчета.";
+                return RedirectToAction(nameof(WorkingReports)); // Или Forbid()
+            }
+
+            // Если права есть, выполняем удаление
+            var result = await _deadlineService.DeleteDeadlineAsync(id); // Убедитесь, что сервис возвращает bool или другой индикатор успеха
+
+            if (result) // Предполагаем, что true означает успех
+            {
+                TempData["Success"] = "Срок сдачи успешно удален.";
+            }
+            else
+            {
+                TempData["Error"] = "Ошибка при удалении срока сдачи."; // Обработка ошибки в сервисе
+            }
+
+            return RedirectToAction(nameof(WorkingReports)); // Перенаправляем обратно на страницу
+        }
+
+
+        // --- Метод для удаления шаблона ---
+        // Этот метод будет обрабатывать AJAX POST-запрос из модального окна.
+        // Проверка прав производится на сервере перед удалением.
+        // Возвращает JSON статус, а не перенаправление.
+        [HttpPost]
+        [Authorize(Roles = "Admin,AdminTrest,PEB,OBUnF")]
+        [ValidateAntiForgeryToken] // Важно!
+        public async Task<IActionResult> DeleteTemplate(int id)
+        {
+            var template = await _reportTemplateService.GetReportTemplateByIdAsync(id);
+
+            if (template == null)
+            {
+                // Возвращаем статус 404 Not Found, если шаблон не найден
+                return NotFound(new { success = false, message = "Шаблон не найден." });
+            }
+
+            // --- Серверная проверка прав на удаление конкретного шаблона ---
+            bool canDeleteAny = User.IsInRole("Admin") || User.IsInRole("AdminTrest");
+            bool canDeletePlan = User.IsInRole("PEB") && template.Type == ReportType.Plan; // Проверяем тип шаблона
+            bool canDeleteAccountant = User.IsInRole("OBUnF") && template.Type == ReportType.Accountant; // Проверяем тип шаблона
+
+            if (!canDeleteAny && !canDeletePlan && !canDeleteAccountant)
+            {
+                // Если у пользователя нет прав на удаление этого шаблона
+                // Возвращаем статус 403 Forbidden
+                return Forbid(); // Это вернет 403 Forbidden без тела, или можно вернуть Unauthorized() / BadRequest()
+                                 // Для более информативного ответа в AJAX можно вернуть:
+                                 // return StatusCode(403, new { success = false, message = "У вас нет прав на удаление этого шаблона." });
+            }
+
+            // Если права есть, выполняем удаление
+            var result = await _reportTemplateService.DeleteReportTemplateAsync(id); // Убедитесь, что сервис возвращает bool или другой индикатор успеха
+
+            if (result) // Предполагаем, что true означает успех
+            {
+                // Возвращаем статус 200 OK с индикатором успеха
+                return Ok(new { success = true, message = "Шаблон успешно удален." });
+            }
+            else
+            {
+                // Если сервис вернул ошибку
+                // Возвращаем статус 400 Bad Request с сообщением об ошибке
+                return BadRequest(new { success = false, message = "Ошибка при удалении шаблона." });
+            }
+        }
+
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,PEB,OBUnF,AdminTrest")]
         public async Task<IActionResult> ReopenReport(int reportId)
         {
             await _reportService.ReopenReportAsync(reportId);
@@ -262,15 +384,32 @@ namespace Stat_reports.Controllers
             return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}.xls");
         }
 
-        public async Task<IActionResult> ReportArchive(string? name, int? templateId, 
-            int? branchId,
-            DateTime? startDate, DateTime? endDate, ReportType? reportType)
+        public async Task<IActionResult> ReportArchive(string? name, int? templateId,
+                                                     int? branchId,
+                                                     int? year, int? month, int? quarter, int? halfYearPeriod, // Новые параметры
+                                                     ReportType? reportType)
         {
             int? sessionBranchId = HttpContext.Session.GetInt32("BranchId");
-            if(User.IsInRole("User")) 
-                branchId = sessionBranchId;
 
-            var reports = await _reportService.GetFilteredReportsAsync(name, templateId, branchId, startDate, endDate, reportType);
+            if (User.IsInRole("User"))
+            {
+                // Если пользователь с ролью User, принудительно устанавливаем его филиал
+                branchId = sessionBranchId;
+            }
+            else if (!User.IsInRole("Admin") && !User.IsInRole("PEB") && !User.IsInRole("OBUnF"))
+            {
+                // Если пользователь не админ, PEB или OBUnF, и не User с установленным филиалом,
+                // возможно, вы захотите перенаправить его или показать сообщение.
+                // Или просто не применять фильтр по филиалу, если он не установлен.
+                // В данном случае, если branchId пришел null (например, из сброса фильтров)
+                // и пользователь не User, фильтр по филиалу не применяется.
+            }
+
+
+            // Передаем новые параметры в сервис
+            var reports = await _reportService.GetFilteredReportsAsync(
+                name, templateId, branchId, year, month, quarter, halfYearPeriod, reportType);
+
             var branches = await _branchService.GetAllBranchesAsync();
             var templates = await _reportTemplateService.GetAllReportTemplatesAsync();
 
@@ -284,14 +423,15 @@ namespace Stat_reports.Controllers
                     Name = name,
                     TemplateId = templateId,
                     BranchId = branchId,
-                    StartDate = startDate,
-                    EndDate = endDate,
-                    Type = reportType ?? null // или null, если Type тоже Nullable
+                    Year = year, // Сохраняем выбранные значения для отображения в форме
+                    Month = month,
+                    Quarter = quarter,
+                    HalfYearPeriod = halfYearPeriod,
+                    Type = reportType
                 }
             };
 
             return View(model);
         }
-
     }
 }

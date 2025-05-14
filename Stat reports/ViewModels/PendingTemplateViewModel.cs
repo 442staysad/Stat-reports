@@ -14,6 +14,7 @@ namespace Stat_reports.ViewModels
         public int? ReportId { get; set; }
         public int BranchId { get; set; } 
         public string BranchName { get; set; } 
-        
+        public string ReportTypeName { get; set; }
+
     }
 }

@@ -19,7 +19,6 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Stat_reports.styles.css" asp-append-version="true" />
 
     @RenderSection("Styles", required: false)
 </head>
@@ -76,7 +75,7 @@
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle @(IsActive("Profile", "Index") ? "active" : "")" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown">
-                                👤 Аккаунт
+                                👤 Профиль
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item @(IsActive("Profile", "Index") ? "active" : "")" href="@Url.Action("Index", "Profile")">ℹ️ Информация</a></li>
@@ -127,11 +126,11 @@
         <div class="container">
             &copy; 2025 - @DateTime.Now.Year ИВЦ - <a asp-controller="Home" asp-action="Privacy" class="text-white text-decoration-underline">Privacy</a>
         </div>
+
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

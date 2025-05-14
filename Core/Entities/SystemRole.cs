@@ -9,5 +9,6 @@ namespace Core.Entities
     {
         [Required]
         public string RoleName { get; set; }
+        public string RoleNameRu { get; set; }
     }
 }

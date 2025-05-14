@@ -33,6 +33,7 @@ namespace Core.Services
             await _unitOfWork.SubmissionDeadlines.AddAsync(deadline);
             return deadline;
         }
+
         public async Task<IEnumerable<ReportTemplate>> GetAllReportTemplatesAsync()
         {
             return await _unitOfWork.ReportTemplates.GetAllAsync();

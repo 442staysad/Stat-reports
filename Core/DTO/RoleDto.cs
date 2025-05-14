@@ -9,5 +9,6 @@ namespace Core.DTO
     public class RoleDto:BaseDTO
     {
         public string RoleName { get; set; } = null!;
+        public string RoleNameRu { get; set; } = null!;
     }
 }

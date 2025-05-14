@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Core.DTO;
-using Core.Entities;
+﻿using Core.DTO;
 using Core.Interfaces;
 
 namespace Core.Services
@@ -23,7 +17,8 @@ namespace Core.Services
                 .Select(r => new RoleDto
                 {
                     Id = r.Id,
-                    RoleName = r.RoleName
+                    RoleName = r.RoleName,
+                    RoleNameRu = r.RoleNameRu
                 });
         }
         public async Task<RoleDto> GetRoleByNameAsync(string name)
@@ -32,7 +27,19 @@ namespace Core.Services
             return new RoleDto
             {
                 Id = role.Id,
-                RoleName = role.RoleName
+                RoleName = role.RoleName,
+                RoleNameRu = role.RoleNameRu
+            };
+
+        }
+        public async Task<RoleDto> GetRoleByIdAsync(int id)
+        {
+            var role = await _unitOfWork.SystemRoles.FindAsync(r => r.Id == id);
+            return new RoleDto
+            {
+                Id = role.Id,
+                RoleName = role.RoleName,
+                RoleNameRu = role.RoleNameRu
             };
 
         }

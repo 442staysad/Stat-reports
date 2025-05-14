@@ -16,6 +16,8 @@ namespace Core.DTO
         public string? Position { get; set; }
         public int RoleId { get; set; }
         public string? RoleName { get; set; } = null!;
+
+        public string? RoleNameRu { get; set; } = null!;
         public int BranchId { get; set; }
         public string Password { get; set; } = null!; // plain-text
     }

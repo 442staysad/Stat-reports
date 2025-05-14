@@ -55,10 +55,15 @@
                 }
     </style>
 }
-
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
 <div class="main-container">
     <h2>Пользователи</h2>
-    @if (User.IsInRole("Admin"))
+    @if (User.IsInRole("Admin") || User.IsInRole("AdminTrest") || User.IsInRole("AdminBranch"))
     {
         <a asp-action="Create" class="btn btn-add">➕ Добавить пользователя</a>
     }
@@ -81,11 +86,11 @@
                     <tr>
                         <td>@user.UserName</td>
                         <td>@user.FullName</td>
-                        <td>@user.RoleName</td>
+                        <td>@user.RoleNameRu</td>
                         <td>@user.Number</td>
                         <td><span class="badge bg-secondary">⏳ offline</span></td>
                         <td>
-                            @if (User.IsInRole("Admin"))
+                            @if (User.IsInRole("Admin") || User.IsInRole("AdminTrest") || User.IsInRole("AdminBranch"))
                             {
                                 <form asp-action="Delete" asp-route-id="@user.Id" method="post" onsubmit="return confirm('Удалить пользователя?');">
                                     <button type="submit" class="btn btn-sm btn-danger">🗑 Удалить</button>

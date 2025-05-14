@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Stat_reports.Models;
+using Stat_reportsnt.Filters;
 
 namespace Stat_reports.Controllers;
 
+[AuthorizeBranchAndUser]
 public class HomeController : Controller
 {
     private readonly IPostService _postService;

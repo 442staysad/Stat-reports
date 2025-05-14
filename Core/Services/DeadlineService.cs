@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -20,6 +21,11 @@ namespace Core.Services
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+        }
+
+        public async Task<SubmissionDeadline> GetDeadlineByIdAsync(int id)
+        {
+            return await _unitOfWork.SubmissionDeadlines.FindAsync(r => r.Id == id);
         }
 
         public async Task<IEnumerable<SubmissionDeadline>> GetAllAsync() => await _unitOfWork.SubmissionDeadlines
@@ -125,6 +131,15 @@ namespace Core.Services
                 _ => throw new ArgumentOutOfRangeException(nameof(deadlineType))
             };
         }
+
+        public async Task<bool> DeleteDeadlineAsync(int id)
+        {
+            var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(r => r.Id == id);
+            if (deadline== null) return false;
+            await _unitOfWork.SubmissionDeadlines.DeleteAsync(deadline);
+            return true;
+        }
+
         /*
         private DateTime CalculateNextDeadline(SubmissionDeadline deadline)
         {
