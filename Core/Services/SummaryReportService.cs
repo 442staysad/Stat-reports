@@ -51,10 +51,10 @@ namespace Core.Services
             return _unitOfWork.ReportTemplates.FindAsync(t => t.Id == templateId).ContinueWith(t => t.Result.FilePath);
         }
 
-        public byte[] MergeReportsToExcel(List<Report> reports, string templatePath)
+        public byte[] MergeReportsToExcel(List<Report> reports, string templatePath, int year, int? month, int? quarter, int? halfYear)
         {
             var paths = reports.Select(r => r.FilePath).ToList();
-            return _excelSplitter.ProcessReports(paths, templatePath);
+            return _excelSplitter.ProcessReports(paths, templatePath, year, month, quarter, halfYear);
         }
 
         private List<int> GetQuarterMonths(int quarter)

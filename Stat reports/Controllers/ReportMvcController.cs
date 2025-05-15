@@ -53,7 +53,7 @@ namespace Stat_reports.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UploadReport(int templateId, IFormFile file)
+        public async Task<IActionResult> UploadReport(int templateId, IFormFile file, int? deadlineId = null)
         {
             if (file == null || file.Length == 0)
             {
@@ -61,7 +61,16 @@ namespace Stat_reports.Controllers
                 return RedirectToAction(nameof(WorkingReports));
             }
 
-            // Получаем текущие UserId и BranchId из сессии
+            // Проверка расширения
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExtensions = new[] { ".xls", ".xlsx" };
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                TempData["Error"] = "Разрешены только Excel-файлы (.xls, .xlsx)";
+                return RedirectToAction(nameof(WorkingReports));
+            }
+
             int? userId = HttpContext.Session.GetInt32("UserId");
             int? branchId = HttpContext.Session.GetInt32("BranchId");
 
@@ -381,7 +390,7 @@ namespace Stat_reports.Controllers
         public async Task<IActionResult> DownloadReport(int reportId, string reportname)
         {
             var fileBytes = await _reportService.GetReportFileAsync(reportId);
-            return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}.xls");
+            return fileBytes == null ? NotFound() : File(fileBytes, "application/octet-stream", $"{reportname}.xlsx");
         }
 
         public async Task<IActionResult> ReportArchive(string? name, int? templateId,

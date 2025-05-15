@@ -5,7 +5,7 @@ using Stat_reports.ViewModels;
 using Stat_reportsnt.Filters;
 
 [AuthorizeBranchAndUser]
-[Authorize(Roles = "Admin,PEB,OBUnF")]
+[Authorize(Roles = "Admin,AdminTrest,PEB,OBUnF")]
 public class SummaryReportController : Controller
 {
     private readonly ISummaryReportService _summaryReportService;
@@ -63,9 +63,8 @@ public class SummaryReportController : Controller
 
         var templatePath = await _summaryReportService.
             GetTemplateFilePathAsync(model.SelectedTemplateId.Value);
-
         var mergedExcel = _summaryReportService.
-            MergeReportsToExcel(reports, templatePath);
+          MergeReportsToExcel(reports, templatePath, model.Year.Value, model.Month, model.Quarter, model.HalfYearPeriod);
 
         return File(mergedExcel, $"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"Сводный {model.Templates.FirstOrDefault(t=>t.Id==model.SelectedTemplateId).Name}.xlsx");

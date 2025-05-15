@@ -259,6 +259,20 @@
                     selectAllBtn.classList.toggle('btn-outline-primary', !allChecked);
                 });
             });
+          document.getElementById('summaryForm').addEventListener('submit', function (e) {
+            const selectedOption = templateSelect.selectedOptions[0];
+            const periodType = selectedOption ? selectedOption.getAttribute('data-period-type') : null;
+
+            if (periodType !== 'Monthly') {
+                document.querySelector('select[name="Month"]').value = '';
+            }
+            if (periodType !== 'Quarterly') {
+                document.querySelector('select[name="Quarter"]').value = '';
+            }
+            if (periodType !== 'HalfYearly') {
+                document.querySelector('select[name="HalfYearPeriod"]').value = '';
+            }
+        });
         });
     </script>
 }

@@ -16,11 +16,13 @@ namespace Core.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<DeadlineService> _logger;
+        private readonly IFileService _fileService;
 
-        public DeadlineService(IUnitOfWork unitOfWork, ILogger<DeadlineService> logger)
+        public DeadlineService(IUnitOfWork unitOfWork, ILogger<DeadlineService> logger, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _fileService = fileService;
         }
 
         public async Task<SubmissionDeadline> GetDeadlineByIdAsync(int id)
@@ -28,10 +30,11 @@ namespace Core.Services
             return await _unitOfWork.SubmissionDeadlines.FindAsync(r => r.Id == id);
         }
 
-        public async Task<IEnumerable<SubmissionDeadline>> GetAllAsync() => await _unitOfWork.SubmissionDeadlines
-                .GetAll(q => q.Include(r => r.Template)
-                              .Include(b => b.Branch))
-                .ToListAsync();
+        public async Task<IEnumerable<SubmissionDeadline>> GetAllAsync() => 
+            await _unitOfWork.SubmissionDeadlines.GetAll(q => 
+                                                         q.Include(r => r.Template)
+                                                          .Include(b => b.Branch))
+                                                          .ToListAsync();
 
         public async Task CheckAndUpdateDeadlineAsync(int templateId, int branchId)
         {
@@ -135,8 +138,10 @@ namespace Core.Services
         public async Task<bool> DeleteDeadlineAsync(int id)
         {
             var deadline = await _unitOfWork.SubmissionDeadlines.FindAsync(r => r.Id == id);
+            var report = await _unitOfWork.Reports.FindAsync(r => r.Id== deadline.ReportId);
             if (deadline== null) return false;
             await _unitOfWork.SubmissionDeadlines.DeleteAsync(deadline);
+            await _fileService.DeleteFileAsync(report.FilePath);
             return true;
         }
 

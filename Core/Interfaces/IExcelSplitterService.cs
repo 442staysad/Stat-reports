@@ -8,6 +8,7 @@ namespace Core.Interfaces
 {
     public interface IExcelSplitterService
     {
-        byte[] ProcessReports(List<string> filePaths, string templatePath);
+        byte[] ProcessReports(List<string> filePaths, string templatePath, int year, int? month, int? quarter, int? halfYear);
+
     }
 }

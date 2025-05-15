@@ -6,7 +6,7 @@ namespace Core.Services
 {
     public class ExcelSplitterService : IExcelSplitterService
     {
-        public byte[] ProcessReports(List<string> filePaths, string templatePath)
+        public byte[] ProcessReports(List<string> filePaths, string templatePath, int year, int? month, int? quarter, int? halfYear)
         {
             // Создаем результатирующий файл Excel из шаблона
             using (var resultWorkbook = new XLWorkbook(templatePath))
@@ -26,7 +26,7 @@ namespace Core.Services
                         }
                     }
                 }
-
+                InsertPeriodDescription(resultWorkbook, year, month, quarter, halfYear);
                 // Создаем поток в памяти для сохранения итогового Excel файла
                 using (var memoryStream = new MemoryStream())
                 {
@@ -86,6 +86,47 @@ namespace Core.Services
                     }
                 }
             }
+        }
+        private void InsertPeriodDescription(IXLWorkbook workbook, int year, int? month, int? quarter, int? halfYear)
+        {
+            var worksheet = workbook.Worksheet(1); // Первый лист
+            string periodText = GetPeriodText(year, month, quarter, halfYear);
+
+            // Найдем первую строку с текстом "Отчет о", и заменим/допишем
+            var cell = worksheet.CellsUsed()
+            .FirstOrDefault(c => c.GetString().Trim().EndsWith(" за"));
+
+            if (cell != null)
+            {
+                // Заменим текст
+                cell.Value = $"{cell.GetString().Split("за")[0].Trim()} за {periodText}";
+            }
+        }
+
+        private string GetPeriodText(int year, int? month, int? quarter, int? halfYear)
+        {
+            if (month != null)
+            {
+                string monthName = CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.GetMonthName(month.Value);
+                return $"{monthName} {year}";
+            }
+            else if (quarter != null)
+            {
+                return quarter switch
+                {
+                    1 => $"январь-март {year}",
+                    2 => $"апрель-июнь {year}",
+                    3 => $"июль-сентябрь {year}",
+                    4 => $"октябрь-декабрь {year}",
+                    _ => $"квартал {quarter} {year}"
+                };
+            }
+            else if (halfYear != null)
+            {
+                return halfYear == 1 ? $"январь-июнь {year}" : $"июль-декабрь {year}";
+            }
+
+            return $"{year} год";
         }
     }
 }
